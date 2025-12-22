@@ -1,0 +1,1774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Mini Social App</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  min-height: 100vh;
+}
+.story-circle-inner:hover {
+  transform: scale(1.05);
+  transition: 0.2s;
+  border-color: #764ba2 !important;
+}
+
+/* NAVBAR */
+.navbar {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  height: 60px;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 100;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+.logo { 
+  font-weight: 700;
+  font-size: 20px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.navbar button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 22px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border: none;
+  color: white;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.navbar button:hover { 
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+/* AUTH & APP */
+#auth, #app {
+  max-width: 600px;
+  margin: auto;
+  padding: 20px;
+}
+#app { margin-top: 80px; padding-bottom: 40px; }
+
+input, textarea {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  font-family: inherit;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+input:focus, textarea:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+}
+input::placeholder, textarea::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+button {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+button:hover { 
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
+}
+button:active {
+  transform: translateY(0);
+}
+
+/* POSTS */
+.post {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  padding: 20px;
+  border-radius: 16px;
+  margin-top: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+.post:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.2);
+}
+.post img {
+  width: 100%;
+  border-radius: 12px;
+  margin-top: 12px;
+  object-fit: cover;
+}
+.actions {
+  display: flex;
+  gap: 20px;
+  margin-top: 15px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.actions span {
+  transition: color 0.2s;
+  opacity: 0.7;
+}
+.actions span:hover {
+  opacity: 1;
+}
+.comment {
+  font-size: 14px;
+  margin-top: 8px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* MODAL */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(5px);
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+.modal-content {
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(20px);
+  padding: 30px;
+  width: 90%;
+  max-width: 450px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease-out;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.modal-content h3 {
+  margin-top: 0;
+  font-size: 22px;
+}
+.modal-content button {
+  width: 100%;
+  margin-top: 12px;
+}
+.modal-content button:last-of-type {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* MAIN APP LAYOUT */
+#app {
+  display: none;
+  max-width: 1400px !important;
+  margin: 0 auto !important;
+  margin-top: 80px !important;
+  padding: 0 !important;
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 20px;
+  height: calc(100vh - 100px);
+}
+
+.app-sidebar {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-main {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.feed-section, .chat-section {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  overflow-y: auto;
+  flex: 1;
+}
+
+.sidebar-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 15px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.8;
+}
+
+/* AUDIO PLAYER STYLING */
+audio.voice-message-player {
+  width: 100%;
+  max-width: 300px;
+  height: 40px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+  accent-color: #667eea;
+  outline: none;
+}
+
+audio.voice-message-player::-webkit-media-controls-panel {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.25), rgba(118, 75, 162, 0.25));
+  border-radius: 8px;
+}
+
+audio.voice-message-player::-webkit-media-controls-mute-button {
+  accent-color: #667eea;
+}
+
+audio.voice-message-player::-webkit-media-controls-play-button {
+  accent-color: #667eea;
+}
+
+audio.voice-message-player::-webkit-media-controls-timeline {
+  accent-color: #667eea;
+}
+
+
+.friend-item {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.friend-item:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateX(4px);
+}
+
+.friend-item.active {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.add-friend-btn {
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.message {
+  padding: 12px 15px;
+  border-radius: 12px;
+  word-wrap: break-word;
+  font-size: 14px;
+}
+
+.message.own {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  margin-left: 30px;
+  border-bottom-right-radius: 4px;
+}
+
+.message.other {
+  background: rgba(255, 255, 255, 0.2);
+  margin-right: 30px;
+  border-bottom-left-radius: 4px;
+}
+
+.voice-message-chat {
+  width: 200px;
+  max-width: 100%;
+}
+
+/* BETTER AUDIO PLAYER */
+audio {
+  accent-color: #667eea;
+  filter: brightness(1.2);
+}
+
+.chat-input-group {
+  display: flex;
+  gap: 10px;
+}
+
+.chat-input-group input {
+  flex: 1;
+  margin: 0;
+}
+
+.chat-input-group button {
+  padding: 10px 20px;
+  margin: 0;
+}
+
+.no-chat {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: rgba(255, 255, 255, 0.5);
+  text-align: center;
+}
+
+/* COMMENTS */
+.comments-section {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+.story-circle {
+  min-width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  border: 3px solid #667eea;
+  padding: 2px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.story-circle img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.group-item {
+  background: rgba(102, 126, 234, 0.2);
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+
+.comment-item {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.comment-author {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.comment-text {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.comment-input-group {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.comment-input-group input {
+  flex: 1;
+  padding: 8px 12px !important;
+  margin: 0 !important;
+  font-size: 13px;
+}
+
+.comment-input-group button {
+  padding: 8px 12px !important;
+  margin: 0 !important;
+  width: auto;
+  font-size: 13px;
+}
+
+/* VOICE RECORDING */
+.voice-btn {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #f093fb, #f5576c);
+  border: none;
+  border-radius: 10px;
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(245, 87, 108, 0.4);
+}
+
+.voice-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(245, 87, 108, 0.6);
+}
+
+.voice-btn.recording {
+  background: #ff4757;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.audio-message {
+  background: linear-gradient(135deg, #f093fb, #f5576c);
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+
+.audio-message audio {
+  width: 100%;
+  height: 30px;
+  border-radius: 6px;
+}
+
+@media (max-width: 1000px) {
+  #app {
+    grid-template-columns: 1fr;
+  }
+  
+  .app-sidebar {
+    max-height: 200px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header class="navbar" id="navbar" style="display:none;">
+  <span class="logo">MiniSocial</span>
+  <div style="display: flex; gap: 15px; align-items: center;">
+    <button id="feedBtn" title="Feed" style="font-size: 20px; opacity: 1;">🏠</button>
+    <button id="messagesBtn" title="Messages" style="font-size: 20px; opacity: 0.6;">💬</button>
+    <button id="notificationsBtn" title="Notifications" style="font-size: 20px; opacity: 0.6; position: relative;">🔔<span id="notificationBadge" style="position: absolute; top: -5px; right: -5px; background: #ff4757; color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 12px; display: none;">0</span></button>
+    <button id="openProfileModal" title="Profile" style="font-size: 20px;">👤</button>
+    <button id="openPostModal" style="font-size: 20px;">➕</button>
+  </div>
+</header>
+
+<div id="auth">
+  <h3>Login / Register</h3>
+  <input id="email" placeholder="Email">
+  <br><br>
+  <input id="password" type="password" placeholder="Password">
+  <br><br>
+  <button id="loginBtn">Login</button>
+  <button id="registerBtn">Register</button>
+  <p id="authMsg"></p>
+</div>
+
+<div id="app" style="display:none;">
+  <!-- SIDEBAR -->
+  <div class="app-sidebar">
+    <div>
+      <p id="userInfo" style="margin-bottom: 15px;"></p>
+      <button id="logoutBtn" style="width: 100%; margin-bottom: 20px;">Logout</button>
+    </div>
+    
+    <div style="flex: 1;">
+      <div class="sidebar-title">Friends</div>
+      <button class="add-friend-btn" id="openAddFriendModal">➕ Add Friend</button>
+      <div id="friendsList"></div>
+    </div>
+  </div>
+  
+  <!-- MAIN CONTENT -->
+  <div class="app-main">
+    <div class="feed-section" id="feedSection">
+        <div class="stories-container" id="storiesContainer" style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 15px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+  <div id="addStoryBtn" style="min-width: 70px; height: 70px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px dashed rgba(255,255,255,0.5);">➕</div>
+  <div id="storiesList" style="display: flex; gap: 10px;"></div>
+</div>
+
+<div id="groupModal" class="modal">
+  <div class="modal-content">
+    <h3>Create Group Chat</h3>
+    <input id="groupName" placeholder="Group Name">
+    <div id="memberSelection" style="max-height: 150px; overflow-y: auto; margin: 10px 0; border: 1px solid rgba(255,255,255,0.2); padding: 5px; border-radius: 8px;">
+      </div>
+    <button id="createGroupBtn">Create Group</button>
+    <button id="closeGroupModal" style="background:#333;">Cancel</button>
+  </div>
+</div>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 style="margin: 0;">Feed</h3>
+        <button id="openPostModal" style="padding: 8px 16px; width: auto;">➕ Post</button>
+      </div>
+      <div id="feed"></div>
+    </div>
+    
+    <div class="chat-section" id="chatSection" style="display: none;">
+      <h3 style="margin: 0 0 15px 0;">Messages</h3>
+      <div class="no-chat" id="noChatMessage">
+        <p>Select a friend to chat</p>
+      </div>
+      <div id="chatContainer" style="display: none; display: flex; flex-direction: column; height: 100%;">
+        <div style="font-weight: 600; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.2);" id="chatHeader"></div>
+        <div class="chat-messages" id="chatMessages"></div>
+        <div style="display: none; margin-top: 10px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 10px; text-align: center;" id="voiceChatRecordingUI">
+          <p style="margin-bottom: 10px; font-weight: 600;" id="chatRecordingTime">00:00</p>
+          <div style="display: flex; gap: 10px;">
+            <button id="stopVoiceChatBtn" style="flex: 1; background: #ff4757; border: none; border-radius: 10px; color: white; cursor: pointer; font-weight: 600; padding: 10px;">⏹ Stop</button>
+            <button id="sendVoiceChatBtn" style="flex: 1; background: linear-gradient(135deg, #f093fb, #f5576c); border: none; border-radius: 10px; color: white; cursor: pointer; font-weight: 600; padding: 10px;">📤 Send</button>
+          </div>
+        </div>
+        <div class="chat-input-group">
+          <input id="messageInput" placeholder="Type a message..." style="margin: 0;">
+          <button id="sendMessageBtn" style="padding: 10px 20px; margin: 0; width: auto;">Send</button>
+          <button id="recordVoiceChatBtn" class="voice-btn" style="padding: 10px 20px; margin: 0; width: auto; background: linear-gradient(135deg, #f093fb, #f5576c);">🎤</button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="chat-section" id="notificationsSection" style="display: none;">
+      <h3 style="margin: 0 0 15px 0;">Friend Requests</h3>
+      <div id="notificationsList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- POST MODAL -->
+<div id="postModal" class="modal">
+  <div class="modal-content">
+    <h3>Create Post</h3>
+    <textarea id="postText" placeholder="Caption..."></textarea>
+    <input id="imageUrl" placeholder="Image URL (optional)">
+    <button id="postBtn">Post</button>
+    <button id="closePostModal" style="background:#333;">Cancel</button>
+  </div>
+</div>
+
+<!-- ADD FRIEND MODAL -->
+<div id="addFriendModal" class="modal">
+  <div class="modal-content">
+    <h3>Add Friend</h3>
+    <input id="friendEmail" placeholder="Friend's email">
+    <button id="addFriendBtn">Add Friend</button>
+    <button id="closeAddFriendModal" style="background:#333;">Cancel</button>
+    <p id="addFriendMsg" style="text-align: center; color: #ccc;"></p>
+  </div>
+</div>
+
+<!-- PROFILE MODAL -->
+<div id="profileModal" class="modal">
+  <div class="modal-content">
+    <h3>My Profile</h3>
+    <div style="text-align: center; margin-bottom: 20px;">
+      <div style="width: 100px; height: 100px; margin: 0 auto 15px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; font-size: 40px; cursor: pointer; overflow: hidden;" id="profilePicDisplay">
+        📷
+      </div>
+      <input type="file" id="profilePicInput" accept="image/*" style="display: none;">
+      <button id="uploadProfilePicBtn" style="width: 100%;">📸 Change Picture</button>
+    </div>
+    <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+      <p><strong>Email:</strong> <span id="profileEmail"></span></p>
+      <p><strong>Friends:</strong> <span id="profileFriendCount">0</span></p>
+    </div>
+    <button id="closeProfileModal" style="background:#333; width: 100%;">Close</button>
+  </div>
+</div>
+
+<!-- NAVBAR PROFILE PIC -->
+<div style="position: fixed; top: 12px; left: 12px; z-index: 90; width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; overflow: hidden; border: 2px solid rgba(255,255,255,0.3);" id="navbarProfilePic">👤</div>
+
+<!-- COMMENTS MODAL -->
+<div id="commentsModal" class="modal">
+  <div class="modal-content" style="max-width: 500px;">
+    <h3>Comments</h3>
+    <div id="commentsList" style="max-height: 300px; overflow-y: auto; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 15px;"></div>
+    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+      <input id="commentInput" placeholder="Write a comment..." style="flex: 1; margin: 0;">
+      <button id="postCommentBtn" style="width: auto; padding: 10px 20px; margin: 0;">Post</button>
+    </div>
+    <div style="display: flex; gap: 10px;">
+      <button id="startVoiceBtn" class="voice-btn" style="flex: 1;">🎤 Record Voice</button>
+      <button id="closeCommentsModal" style="flex: 1; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; color: white; cursor: pointer; font-weight: 600; padding: 10px;">Close</button>
+    </div>
+    <div id="voiceRecordingUI" style="display: none; margin-top: 15px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 10px;">
+      <p style="margin-bottom: 10px; text-align: center; font-weight: 600;" id="recordingTime">00:00</p>
+      <div style="display: flex; gap: 10px;">
+        <button id="stopVoiceBtn" style="flex: 1; background: #ff4757; border: none; border-radius: 10px; color: white; cursor: pointer; font-weight: 600; padding: 10px;">⏹ Stop</button>
+        <button id="sendVoiceBtn" style="flex: 1; background: linear-gradient(135deg, #f093fb, #f5576c); border: none; border-radius: 10px; color: white; cursor: pointer; font-weight: 600; padding: 10px;">📤 Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="storyViewer" class="modal" style="background: rgba(0,0,0,0.95); z-index: 3000; display:none; flex-direction:column; align-items:center; justify-content:center;">
+  <div style="position: absolute; top: 10px; left: 0; width: 100%; height: 4px; display: flex; gap: 5px; padding: 0 10px;">
+    <div id="storyProgress" style="height: 100%; background: white; width: 0%; transition: width 0.1s linear;"></div>
+  </div>
+  
+  <div style="width: 100%; max-width: 450px; position: relative; padding: 20px;">
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+      <img id="storyViewAvatar" src="" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid white; object-fit: cover;">
+      <span id="storyViewUser" style="font-weight: bold; font-size: 1.1rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);"></span>
+      <span id="closeStory" style="margin-left: auto; cursor: pointer; font-size: 32px;">&times;</span>
+    </div>
+
+    <img id="storyViewImg" src="" style="width: 100%; border-radius: 12px; max-height: 70vh; object-fit: contain; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: 25px; gap: 8px;">
+      <button id="likeStoryBtn" style="background: rgba(255,255,255,0.1); border: 2px solid white; border-radius: 50%; width: 70px; height: 70px; font-size: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s;">
+        ❤️
+      </button>
+      <span id="storyLikeCount" style="font-weight: bold; font-size: 1.2rem;">0</span>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  serverTimestamp,
+  query,
+  orderBy,
+  onSnapshot,
+  doc,
+  updateDoc,
+  getDoc,
+  arrayUnion,
+  arrayRemove,
+  where,
+  getDocs,
+  setDoc,
+  deleteDoc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAqXdF1640j6J1DXLlJiek3Z3vJxYOj9-w",
+  authDomain: "mini-social-media-4743d.firebaseapp.com",
+  projectId: "mini-social-media-4743d"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+/* DOM ELEMENTS */
+const authDiv = document.getElementById("auth");
+const appDiv = document.getElementById("app");
+const navbar = document.getElementById("navbar");
+const feed = document.getElementById("feed");
+const userInfo = document.getElementById("userInfo");
+
+const email = document.getElementById("email");
+const password = document.getElementById("password");
+const authMsg = document.getElementById("authMsg");
+
+const loginBtn = document.getElementById("loginBtn");
+const registerBtn = document.getElementById("registerBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+
+const postModal = document.getElementById("postModal");
+const openPostModal = document.getElementById("openPostModal");
+const closePostModal = document.getElementById("closePostModal");
+
+const postText = document.getElementById("postText");
+const imageUrl = document.getElementById("imageUrl");
+const postBtn = document.getElementById("postBtn");
+
+const addFriendModal = document.getElementById("addFriendModal");
+const openAddFriendModal = document.getElementById("openAddFriendModal");
+const closeAddFriendModal = document.getElementById("closeAddFriendModal");
+const friendEmail = document.getElementById("friendEmail");
+const addFriendBtn = document.getElementById("addFriendBtn");
+const addFriendMsg = document.getElementById("addFriendMsg");
+
+const friendsList = document.getElementById("friendsList");
+const chatContainer = document.getElementById("chatContainer");
+const noChatMessage = document.getElementById("noChatMessage");
+const chatMessages = document.getElementById("chatMessages");
+const chatHeader = document.getElementById("chatHeader");
+const messageInput = document.getElementById("messageInput");
+const sendMessageBtn = document.getElementById("sendMessageBtn");
+
+const profileModal = document.getElementById("profileModal");
+const openProfileModal = document.getElementById("openProfileModal");
+const closeProfileModal = document.getElementById("closeProfileModal");
+const profilePicDisplay = document.getElementById("profilePicDisplay");
+const profilePicInput = document.getElementById("profilePicInput");
+const uploadProfilePicBtn = document.getElementById("uploadProfilePicBtn");
+const profileEmail = document.getElementById("profileEmail");
+const profileFriendCount = document.getElementById("profileFriendCount");
+const openChatsView = document.getElementById("openChatsView");
+
+const feedBtn = document.getElementById("feedBtn");
+const messagesBtn = document.getElementById("messagesBtn");
+const notificationsBtn = document.getElementById("notificationsBtn");
+const feedSection = document.getElementById("feedSection");
+const chatSection = document.getElementById("chatSection");
+const notificationsSection = document.getElementById("notificationsSection");
+const notificationsList = document.getElementById("notificationsList");
+const notificationBadge = document.getElementById("notificationBadge");
+const navbarProfilePic = document.getElementById("navbarProfilePic");
+
+let currentGroupId = null;
+let currentChatFriend = null;
+let currentCommentPostId = null;
+let mediaRecorder = null;
+let audioChunks = [];
+let recordingStartTime = null;
+
+
+/* AUTH */
+loginBtn.onclick = () => signInWithEmailAndPassword(auth, email.value, password.value)
+  .catch(e => authMsg.innerText = e.message);
+
+registerBtn.onclick = () => createUserWithEmailAndPassword(auth, email.value, password.value)
+  .catch(e => authMsg.innerText = e.message);
+
+logoutBtn.onclick = () => signOut(auth);
+
+/* STATE */
+onAuthStateChanged(auth, async user => {
+  if (user) {
+    authDiv.style.display = "none";
+    appDiv.style.display = "grid";
+    navbar.style.display = "flex";
+    userInfo.innerHTML = `👤 ${user.email}`;
+    
+    // Initialize user in database
+    const userRef = doc(db, "users", user.uid);
+    const userSnap = await getDoc(userRef);
+    
+    if (!userSnap.exists()) {
+      await setDoc(userRef, {
+        email: user.email,
+        friends: [],
+        createdAt: serverTimestamp()
+      });
+    } else {
+      // Update navbar profile pic from database
+      const userData = userSnap.data();
+      if (userData.profilePic) {
+        navbarProfilePic.textContent = "";
+        navbarProfilePic.style.backgroundImage = `url(${userData.profilePic})`;
+        navbarProfilePic.style.backgroundSize = "cover";
+        navbarProfilePic.style.backgroundPosition = "center";
+      }
+    }
+    
+    // Listen to profile pic updates
+    onSnapshot(userRef, (snap) => {
+      if (snap.exists() && snap.data().profilePic) {
+        navbarProfilePic.textContent = "";
+        navbarProfilePic.style.backgroundImage = `url(${snap.data().profilePic})`;
+        navbarProfilePic.style.backgroundSize = "cover";
+        navbarProfilePic.style.backgroundPosition = "center";
+      }
+    });
+    
+    loadFeed();
+    loadFriends();
+    loadNotifications();
+    loadStories();
+    loadGroups();
+  } else {
+    authDiv.style.display = "block";
+    appDiv.style.display = "none";
+    navbar.style.display = "none";
+  }
+});
+
+
+/* MODAL */
+openPostModal.onclick = () => postModal.style.display = "flex";
+closePostModal.onclick = () => postModal.style.display = "none";
+
+openAddFriendModal.onclick = () => {
+  addFriendModal.style.display = "flex";
+  friendEmail.value = "";
+  addFriendMsg.innerText = "";
+};
+closeAddFriendModal.onclick = () => addFriendModal.style.display = "none";
+
+/* ADD FRIEND */
+addFriendBtn.onclick = async () => {
+  const email = friendEmail.value.trim();
+  if (!email) return;
+  
+  try {
+    addFriendMsg.innerText = "Searching...";
+    
+    // Check if user exists
+    const usersRef = collection(db, "users");
+    const q = query(usersRef, where("email", "==", email));
+    const snap = await getDocs(q);
+    
+    if (snap.empty) {
+      addFriendMsg.innerText = "❌ User not found";
+      return;
+    }
+    
+    const friendData = snap.docs[0];
+    const friendId = friendData.id;
+    
+    if (friendId === auth.currentUser.uid) {
+      addFriendMsg.innerText = "❌ Can't add yourself";
+      return;
+    }
+    
+    // Check if already friends
+    const userRef = doc(db, "users", auth.currentUser.uid);
+    const userSnap = await getDoc(userRef);
+    const userFriends = userSnap.data().friends || [];
+    
+    if (userFriends.includes(friendId)) {
+      addFriendMsg.innerText = "❌ Already friends";
+      return;
+    }
+    
+    // Send friend request
+    await addDoc(collection(db, "friendRequests"), {
+      from: auth.currentUser.uid,
+      fromEmail: auth.currentUser.email,
+      to: friendId,
+      createdAt: serverTimestamp()
+    });
+    
+    addFriendMsg.innerText = "✅ Request sent!";
+    setTimeout(() => {
+      addFriendModal.style.display = "none";
+    }, 1000);
+  } catch (e) {
+    console.error(e);
+    addFriendMsg.innerText = "✅ Request sent!";
+    setTimeout(() => {
+      addFriendModal.style.display = "none";
+    }, 1000);
+  }
+};
+
+/* SEND MESSAGE */
+sendMessageBtn.onclick = async () => {
+  const text = messageInput.value.trim();
+  
+  // 1. Validation: Ensure there's text AND a target (either a group or a friend)
+  if (!text || (!currentChatFriend && !currentGroupId)) return;
+
+  try {
+    if (currentGroupId) {
+      // --- ROUTE TO GROUP CHAT ---
+      await addDoc(collection(db, "groups", currentGroupId, "messages"), {
+        text: text,
+        sender: auth.currentUser.uid,
+        senderEmail: auth.currentUser.email.split("@")[0], // Simplified name
+        createdAt: serverTimestamp()
+      });
+    } else if (currentChatFriend) {
+      // --- ROUTE TO PRIVATE CHAT ---
+      const conversationId = [auth.currentUser.uid, currentChatFriend].sort().join("_");
+      await addDoc(collection(db, "conversations", conversationId, "messages"), {
+        text: text,
+        sender: auth.currentUser.uid,
+        senderEmail: auth.currentUser.email,
+        createdAt: serverTimestamp()
+      });
+    }
+
+    // Clear input after successful send
+    messageInput.value = "";
+    
+  } catch (e) {
+    console.error("Error sending message: ", e);
+    alert("Could not send message. Check console for details.");
+  }
+};
+
+messageInput.onkeypress = (e) => {
+  if (e.key === "Enter") sendMessageBtn.click();
+};
+
+/* VOICE CHAT */
+const recordVoiceChatBtn = document.getElementById("recordVoiceChatBtn");
+const stopVoiceChatBtn = document.getElementById("stopVoiceChatBtn");
+const sendVoiceChatBtn = document.getElementById("sendVoiceChatBtn");
+const voiceChatRecordingUI = document.getElementById("voiceChatRecordingUI");
+const chatRecordingTime = document.getElementById("chatRecordingTime");
+let chatMediaRecorder = null;
+let chatAudioChunks = [];
+let chatRecordingStartTime = null;
+
+let chatRecordingInterval = null;
+
+recordVoiceChatBtn.onclick = async () => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    chatMediaRecorder = new MediaRecorder(stream);
+    chatAudioChunks = [];
+    chatRecordingStartTime = Date.now();
+    
+    chatMediaRecorder.ondataavailable = (event) => {
+      console.log("ondataavailable fired, chunk size:", event.data.size);
+      if (event.data.size > 0) {
+        chatAudioChunks.push(event.data);
+      }
+    };
+    
+    // Start with timeslice to ensure ondataavailable fires periodically
+    chatMediaRecorder.start(100);
+    console.log("MediaRecorder started");
+    
+    recordVoiceChatBtn.style.display = "none";
+    voiceChatRecordingUI.style.display = "block";
+    messageInput.style.display = "none";
+    sendMessageBtn.style.display = "none";
+    
+    // Update recording time
+    chatRecordingInterval = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - chatRecordingStartTime) / 1000);
+      const mins = Math.floor(elapsed / 60);
+      const secs = elapsed % 60;
+      chatRecordingTime.innerText = `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    }, 100);
+    
+    stopVoiceChatBtn.onclick = () => {
+      clearInterval(chatRecordingInterval);
+      if (chatMediaRecorder && chatMediaRecorder.state !== "inactive") {
+        // Request any remaining data before stopping
+        chatMediaRecorder.requestData();
+        chatMediaRecorder.stop();
+        // Stop all tracks
+        stream.getTracks().forEach(track => track.stop());
+        console.log("MediaRecorder stopped");
+      }
+    };
+  } catch (e) {
+    console.error("Microphone access denied:", e);
+    alert("Please allow microphone access to record voice messages");
+  }
+};
+
+sendVoiceChatBtn.onclick = async () => {
+  // Auto-stop recording when sending
+  if (chatMediaRecorder && chatMediaRecorder.state !== "inactive") {
+    clearInterval(chatRecordingInterval);
+    chatMediaRecorder.requestData();
+    chatMediaRecorder.stop();
+  }
+  
+  console.log("Send clicked, chunks:", chatAudioChunks.length, "Friend:", currentChatFriend);
+  
+  if (!currentChatFriend) {
+    alert("Please select a friend to chat with");
+    return;
+  }
+  
+  if (chatAudioChunks.length === 0) {
+    alert("No audio recorded. Please record a message first.");
+    return;
+  }
+  
+  const conversationId = [auth.currentUser.uid, currentChatFriend].sort().join("_");
+  const audioBlob = new Blob(chatAudioChunks, { type: "audio/webm" });
+  const reader = new FileReader();
+  
+  reader.onload = async (event) => {
+    const audioBase64 = event.target.result;
+    
+    try {
+      await addDoc(collection(db, "conversations", conversationId, "messages"), {
+        audio: audioBase64,
+        isVoice: true,
+        sender: auth.currentUser.uid,
+        senderEmail: auth.currentUser.email,
+        createdAt: serverTimestamp()
+      });
+      
+      chatAudioChunks = [];
+      voiceChatRecordingUI.style.display = "none";
+      recordVoiceChatBtn.style.display = "block";
+      messageInput.style.display = "block";
+      sendMessageBtn.style.display = "block";
+    } catch (e) {
+      console.error("Error sending voice message:", e);
+      alert("Error sending voice message. Try again.");
+    }
+  };
+  
+  reader.readAsDataURL(audioBlob);
+};
+
+/* PROFILE */
+openProfileModal.onclick = () => {
+  profileModal.style.display = "flex";
+  profileEmail.innerText = auth.currentUser.email;
+  const userRef = doc(db, "users", auth.currentUser.uid);
+  getDoc(userRef).then(snap => {
+    profileFriendCount.innerText = snap.data().friends?.length || 0;
+    if (snap.data().profilePic) {
+      profilePicDisplay.textContent = "";
+      profilePicDisplay.style.backgroundImage = `url(${snap.data().profilePic})`;
+      profilePicDisplay.style.backgroundSize = "cover";
+      profilePicDisplay.style.backgroundPosition = "center";
+    }
+  });
+};
+closeProfileModal.onclick = () => profileModal.style.display = "none";
+
+uploadProfilePicBtn.onclick = () => profilePicInput.click();
+
+profilePicInput.onchange = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  
+  // Convert to base64
+  const reader = new FileReader();
+  reader.onload = async (event) => {
+    const base64 = event.target.result;
+    const userRef = doc(db, "users", auth.currentUser.uid);
+    await updateDoc(userRef, {
+      profilePic: base64
+    });
+    
+    // Update all UI elements
+    profilePicDisplay.textContent = "";
+    profilePicDisplay.style.backgroundImage = `url(${base64})`;
+    profilePicDisplay.style.backgroundSize = "cover";
+    profilePicDisplay.style.backgroundPosition = "center";
+    
+    navbarProfilePic.textContent = "";
+    navbarProfilePic.style.backgroundImage = `url(${base64})`;
+    navbarProfilePic.style.backgroundSize = "cover";
+    navbarProfilePic.style.backgroundPosition = "center";
+  };
+  reader.readAsDataURL(file);
+};
+
+/* USER PROFILE VIEWING */
+window.closeUserProfile = () => {
+  document.getElementById("userProfileModal").style.display = "none";
+};/* NAVBAR BUTTONS */
+feedBtn.onclick = () => {
+  feedSection.style.display = "block";
+  chatSection.style.display = "none";
+  notificationsSection.style.display = "none";
+  feedBtn.style.opacity = "1";
+  messagesBtn.style.opacity = "0.6";
+  notificationsBtn.style.opacity = "0.6";
+};
+
+messagesBtn.onclick = () => {
+  feedSection.style.display = "none";
+  chatSection.style.display = "block";
+  notificationsSection.style.display = "none";
+  feedBtn.style.opacity = "0.6";
+  messagesBtn.style.opacity = "1";
+  notificationsBtn.style.opacity = "0.6";
+};
+
+notificationsBtn.onclick = () => {
+  feedSection.style.display = "none";
+  chatSection.style.display = "none";
+  notificationsSection.style.display = "block";
+  feedBtn.style.opacity = "0.6";
+  messagesBtn.style.opacity = "0.6";
+  notificationsBtn.style.opacity = "1";
+};
+
+/* POST */
+postBtn.onclick = async () => {
+  if (!postText.value.trim()) return;
+  await addDoc(collection(db, "posts"), {
+  text: postText.value,
+  image: imageUrl.value,
+  user: auth.currentUser.email.split("@")[0],
+  userId: auth.currentUser.uid,
+  uid: auth.currentUser.uid,
+  likedBy: [],
+  reactions: {},
+  createdAt: serverTimestamp()
+});
+
+  postText.value = "";
+  imageUrl.value = "";
+  postModal.style.display = "none";
+};
+
+/* FEED */
+function loadFeed() {
+  const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+  onSnapshot(q, snap => {
+  feed.innerHTML = "";
+  snap.forEach(d => {
+    const p = d.data();
+    const uid = auth.currentUser.uid;
+    const reactions = p.reactions || {};
+    const reactionEmojis = ['👍', '❤️', '😂', '😮', '😢'];
+    const userReaction = Object.entries(reactions).find(([, users]) => users?.includes(uid))?.[0];
+    const reactCounts = Object.entries(reactions).map(([emoji, users]) => `${emoji} ${users?.length || 0}`).join(' ');
+    const isOwner = p.userId === uid;
+
+    feed.innerHTML += `
+      <div class="post">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <b>${p.user}</b>
+          ${isOwner ? `<div style="display: flex; gap: 5px;">
+            <button onclick="editPost('${d.id}')" style="padding: 4px 8px; font-size: 12px; background: rgba(102,126,234,0.3); border: none; border-radius: 4px; color: white; cursor: pointer;">✏️</button>
+            <button onclick="deletePost('${d.id}')" style="padding: 4px 8px; font-size: 12px; background: rgba(255,71,87,0.3); border: none; border-radius: 4px; color: white; cursor: pointer;">🗑️</button>
+          </div>` : ''}
+        </div>
+        <p>${p.text}</p>
+        ${p.image ? `<img src="${p.image}">` : ""}
+        <div class="actions" style="display: flex; gap: 15px; margin: 10px 0;">
+          <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+            ${reactionEmojis.map(emoji => `
+              <button onclick="toggleReaction('${d.id}', '${emoji}')" style="padding: 4px 8px; background: ${userReaction === emoji ? 'rgba(102,126,234,0.4)' : 'rgba(255,255,255,0.1)'}; border: 1px solid rgba(102,126,234,${userReaction === emoji ? '0.6' : '0.2'}); border-radius: 6px; color: white; cursor: pointer; font-size: 14px;">${emoji}</button>
+            `).join('')}
+          </div>
+          ${reactCounts ? `<span style="font-size: 12px; opacity: 0.7;">${reactCounts}</span>` : ''}
+        </div>
+        <span onclick="toggleCommentsSection('${d.id}')" style="cursor: pointer; color: #667eea; text-decoration: underline;">💬 ${d.data().commentCount || 0} Comments</span>
+        <div class="comments-section" id="comments-${d.id}" style="display: none; margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255, 255, 255, 0.2);">
+          <div id="commentsList-${d.id}" style="margin-bottom: 10px;"></div>
+          <div style="display: flex; gap: 8px;">
+            <input id="commentInput-${d.id}" placeholder="Add a comment..." style="flex: 1; padding: 8px 12px !important; margin: 0 !important; font-size: 13px;">
+            <button onclick="addCommentToPost('${d.id}')" style="padding: 8px 12px !important; margin: 0 !important; width: auto; font-size: 13px; background: linear-gradient(135deg, #667eea, #764ba2);">➕</button>
+            <button onclick="recordVoiceComment('${d.id}')" style="padding: 8px 12px !important; margin: 0 !important; width: auto; font-size: 13px; background: linear-gradient(135deg, #f093fb, #f5576c);">🎤</button>
+          </div>
+          <div id="voiceCommentUI-${d.id}" style="display: none; margin-top: 10px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px; text-align: center;">
+            <p style="margin: 0 0 8px 0; font-weight: 600; font-size: 12px;" id="voiceCommentTime-${d.id}">00:00</p>
+            <div style="display: flex; gap: 8px;">
+              <button onclick="stopVoiceComment('${d.id}')" style="flex: 1; padding: 6px; background: #ff4757; border: none; border-radius: 6px; color: white; cursor: pointer; font-weight: 600; font-size: 12px;">⏹ Stop</button>
+              <button onclick="sendVoiceComment('${d.id}')" style="flex: 1; padding: 6px; background: linear-gradient(135deg, #f093fb, #f5576c); border: none; border-radius: 6px; color: white; cursor: pointer; font-weight: 600; font-size: 12px;">📤 Send</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+});
+
+}
+
+window.toggleLike = async (postId) => {
+  const postRef = doc(db, "posts", postId);
+  const uid = auth.currentUser.uid;
+
+  const snap = await getDoc(postRef);
+  const likedBy = snap.data().likedBy || [];
+
+  if (likedBy.includes(uid)) {
+    // UNLIKE
+    await updateDoc(postRef, {
+      likedBy: arrayRemove(uid)
+    });
+  } else {
+    // LIKE
+    await updateDoc(postRef, {
+      likedBy: arrayUnion(uid)
+    });
+  }
+};
+
+/* REACTIONS */
+window.toggleReaction = async (postId, emoji) => {
+  const postRef = doc(db, "posts", postId);
+  const uid = auth.currentUser.uid;
+  
+  const snap = await getDoc(postRef);
+  const reactions = snap.data().reactions || {};
+  
+  // Remove user from all reactions first
+  Object.keys(reactions).forEach(e => {
+    if (reactions[e]?.includes(uid)) {
+      reactions[e] = reactions[e].filter(id => id !== uid);
+      if (reactions[e].length === 0) delete reactions[e];
+    }
+  });
+  
+  // Add to new reaction
+  if (!reactions[emoji]) reactions[emoji] = [];
+  reactions[emoji].push(uid);
+  
+  await updateDoc(postRef, { reactions });
+};
+
+/* EDIT POST */
+window.editPost = async (postId) => {
+  const text = prompt("Edit your post:");
+  if (!text) return;
+  
+  try {
+    await updateDoc(doc(db, "posts", postId), { text });
+  } catch (e) {
+    alert("Error editing post");
+  }
+};
+
+/* DELETE POST */
+window.deletePost = async (postId) => {
+  if (!confirm("Delete this post?")) return;
+  
+  try {
+    await deleteDoc(doc(db, "posts", postId));
+  } catch (e) {
+    alert("Error deleting post");
+  }
+};
+
+/* DELETE COMMENT */
+window.deleteComment = async (postId, commentId) => {
+  if (!confirm("Delete this comment?")) return;
+  
+  try {
+    await deleteDoc(doc(db, "posts", postId, "comments", commentId));
+    const postRef = doc(db, "posts", postId);
+    const snap = await getDoc(postRef);
+    const count = (snap.data().commentCount || 1) - 1;
+    await updateDoc(postRef, { commentCount: Math.max(0, count) });
+  } catch (e) {
+    alert("Error deleting comment");
+  }
+};
+
+/* EDIT COMMENT */
+window.editComment = async (postId, commentId) => {
+  const text = prompt("Edit your comment:");
+  if (!text) return;
+  
+  try {
+    await updateDoc(doc(db, "posts", postId, "comments", commentId), { text });
+  } catch (e) {
+    alert("Error editing comment");
+  }
+};
+
+/* LOAD FRIENDS */
+function loadFriends() {
+  const userRef = doc(db, "users", auth.currentUser.uid);
+  onSnapshot(userRef, async (snap) => {
+    if (!snap.exists()) return;
+    
+    const userData = snap.data();
+    const friendIds = userData.friends || [];
+    
+    friendsList.innerHTML = "";
+    
+    if (friendIds.length === 0) {
+      friendsList.innerHTML = "<p style='text-align: center; opacity: 0.6; margin-top: 20px;'>No friends yet</p>";
+      return;
+    }
+    
+    for (const friendId of friendIds) {
+      const friendSnap = await getDoc(doc(db, "users", friendId));
+      if (friendSnap.exists()) {
+        const friendData = friendSnap.data();
+        const friendDiv = document.createElement("div");
+        friendDiv.className = "friend-item";
+        
+        const pic = friendData.profilePic ? `<img src="${friendData.profilePic}" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; margin-right: 10px;">` : `<span style="font-size: 20px; margin-right: 10px;">👤</span>`;
+        
+        friendDiv.innerHTML = `<div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+          <div style="display: flex; align-items: center; cursor: pointer; flex: 1;" onclick="openChat('${friendId}', '${friendData.email}'); event.stopPropagation();">
+            ${pic}
+            <span>${friendData.email.split("@")[0]}</span>
+          </div>
+          <button onclick="deleteFriend('${friendId}'); event.stopPropagation();" style="padding: 4px 8px; font-size: 12px; background: rgba(255,71,87,0.3); border: none; border-radius: 4px; color: white; cursor: pointer;">✕</button>
+        </div>`;
+        friendsList.appendChild(friendDiv);
+      }
+    }
+  });
+}
+
+/* DELETE FRIEND */
+window.deleteFriend = async (friendId) => {
+  if (!confirm("Remove this friend?")) return;
+  
+  try {
+    const uid = auth.currentUser.uid;
+    const userRef = doc(db, "users", uid);
+    const friendRef = doc(db, "users", friendId);
+    
+    await updateDoc(userRef, { friends: arrayRemove(friendId) });
+    await updateDoc(friendRef, { friends: arrayRemove(uid) });
+  } catch (e) {
+    alert("Error removing friend");
+  }
+};
+
+/* OPEN CHAT */
+window.openChat = function(friendId, friendEmail) {
+  currentChatFriend = friendId;
+  
+  // Update UI
+  document.querySelectorAll(".friend-item").forEach(el => el.classList.remove("active"));
+  event.target.closest(".friend-item").classList.add("active");
+  
+  noChatMessage.style.display = "none";
+  chatContainer.style.display = "flex";
+  chatHeader.innerText = `💬 ${friendEmail.split("@")[0]}`;
+  chatMessages.innerHTML = "";
+  
+  // Load messages
+  const conversationId = [auth.currentUser.uid, friendId].sort().join("_");
+  const q = query(
+    collection(db, "conversations", conversationId, "messages"),
+    orderBy("createdAt", "asc")
+  );
+  
+  onSnapshot(q, (snap) => {
+    chatMessages.innerHTML = "";
+    snap.forEach((doc) => {
+      const msg = doc.data();
+      const isOwn = msg.sender === auth.currentUser.uid;
+      const msgEl = document.createElement("div");
+      msgEl.className = `message ${isOwn ? "own" : "other"}`;
+      
+      if (msg.isVoice) {
+        msgEl.innerHTML = `<audio controls class="voice-message-player"><source src="${msg.audio}" type="audio/webm"></audio>`;
+      } else {
+        msgEl.textContent = msg.text;
+      }
+      
+      chatMessages.appendChild(msgEl);
+    });
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  });
+}
+
+/* LOAD NOTIFICATIONS */
+function loadNotifications() {
+  const q = query(collection(db, "friendRequests"), where("to", "==", auth.currentUser.uid));
+  onSnapshot(q, (snap) => {
+    const requests = [];
+    snap.forEach(doc => {
+      requests.push({ id: doc.id, ...doc.data() });
+    });
+    
+    notificationBadge.innerText = requests.length;
+    notificationBadge.style.display = requests.length > 0 ? "flex" : "none";
+    
+    notificationsList.innerHTML = "";
+    requests.forEach(req => {
+      const notifDiv = document.createElement("div");
+      notifDiv.style.cssText = "background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.2);";
+      notifDiv.innerHTML = `
+        <div style="font-weight: 600; margin-bottom: 10px;">
+          ${req.fromEmail.split("@")[0]} wants to be your friend
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button style="flex: 1; padding: 8px 12px; background: linear-gradient(135deg, #667eea, #764ba2); border: none; border-radius: 8px; color: white; cursor: pointer; font-weight: 600;" onclick="acceptFriendRequest('${req.id}', '${req.from}')">✅ Accept</button>
+          <button style="flex: 1; padding: 8px 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; cursor: pointer; font-weight: 600;" onclick="declineFriendRequest('${req.id}')">❌ Decline</button>
+        </div>
+      `;
+      notificationsList.appendChild(notifDiv);
+    });
+  });
+}
+
+window.acceptFriendRequest = async (requestId, friendId) => {
+  try {
+    // Delete the friend request first
+    await deleteDoc(doc(db, "friendRequests", requestId));
+    
+    const userRef = doc(db, "users", auth.currentUser.uid);
+    const friendRef = doc(db, "users", friendId);
+    
+    // Add friendId to current user's friends
+    await updateDoc(userRef, {
+      friends: arrayUnion(friendId)
+    });
+    
+    // Add current user to friendId's friends
+    await updateDoc(friendRef, {
+      friends: arrayUnion(auth.currentUser.uid)
+    });
+    
+    // Refresh both lists
+    loadFriends();
+  } catch (e) {
+    console.error("Error accepting friend request:", e);
+  }
+};
+
+window.declineFriendRequest = async (requestId) => {
+  try {
+    await deleteDoc(doc(db, "friendRequests", requestId));
+  } catch (e) {
+    console.error("Error declining friend request:", e);
+  }
+};
+
+/* COMMENTS */
+const commentsModal = document.getElementById("commentsModal");
+const commentsList = document.getElementById("commentsList");
+const commentInput = document.getElementById("commentInput");
+const postCommentBtn = document.getElementById("postCommentBtn");
+const closeCommentsModal = document.getElementById("closeCommentsModal");
+const startVoiceBtn = document.getElementById("startVoiceBtn");
+const stopVoiceBtn = document.getElementById("stopVoiceBtn");
+const sendVoiceBtn = document.getElementById("sendVoiceBtn");
+const voiceRecordingUI = document.getElementById("voiceRecordingUI");
+const recordingTime = document.getElementById("recordingTime");
+
+closeCommentsModal.onclick = () => commentsModal.style.display = "none";
+
+window.toggleCommentsSection = (postId) => {
+  const section = document.getElementById(`comments-${postId}`);
+  section.style.display = section.style.display === "none" ? "block" : "none";
+  
+  if (section.style.display === "block") {
+    loadCommentsForPost(postId);
+  }
+};
+
+function loadCommentsForPost(postId) {
+  const q = query(collection(db, "posts", postId, "comments"), orderBy("createdAt", "asc"));
+  const commentsList = document.getElementById(`commentsList-${postId}`);
+  
+  onSnapshot(q, async (snap) => {
+    commentsList.innerHTML = "";
+    let commentCount = 0;
+    snap.forEach((commentDoc) => {
+      const comment = commentDoc.data();
+      const uid = auth.currentUser.uid;
+      const isOwner = comment.userId === uid;
+      const commentDiv = document.createElement("div");
+      commentCount++;
+      
+      if (comment.isVoice) {
+        commentDiv.style.cssText = "background: rgba(255,255,255,0.1); padding: 8px; border-radius: 8px; margin-bottom: 8px;";
+        commentDiv.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <div style="font-weight: 600; font-size: 12px;">${comment.user}</div>
+            ${isOwner ? `<div style="display: flex; gap: 5px;">
+              <button onclick="deleteComment('${postId}', '${commentDoc.id}')" style="padding: 2px 6px; font-size: 11px; background: rgba(255,71,87,0.3); border: none; border-radius: 3px; color: white; cursor: pointer;">🗑️</button>
+            </div>` : ''}
+          </div>
+          <audio controls class="voice-message-player"><source src="${comment.audio}" type="audio/webm"></audio>
+        `;
+      } 
+      else {
+        commentDiv.style.cssText = "background: rgba(255,255,255,0.1); padding: 8px; border-radius: 8px; margin-bottom: 8px;";
+        commentDiv.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <div style="font-weight: 600; font-size: 12px;">${comment.user}</div>
+            ${isOwner ? `<div style="display: flex; gap: 5px;">
+              <button onclick="editComment('${postId}', '${commentDoc.id}')" style="padding: 2px 6px; font-size: 11px; background: rgba(102,126,234,0.3); border: none; border-radius: 3px; color: white; cursor: pointer;">✏️</button>
+              <button onclick="deleteComment('${postId}', '${commentDoc.id}')" style="padding: 2px 6px; font-size: 11px; background: rgba(255,71,87,0.3); border: none; border-radius: 3px; color: white; cursor: pointer;">🗑️</button>
+            </div>` : ''}
+          </div>
+          <div style="font-size: 13px; color: rgba(255,255,255,0.9);">${comment.text}</div>
+        `;
+      }
+      commentsList.appendChild(commentDiv);
+    });
+    
+    // Update the comment count in the post
+    const postRef = doc(db, "posts", postId);
+    await updateDoc(postRef, { commentCount });
+  });
+}
+
+window.addCommentToPost = async (postId) => {
+  const input = document.getElementById(`commentInput-${postId}`);
+  const text = input.value.trim();
+  if (!text) return;
+  
+  await addDoc(collection(db, "posts", postId, "comments"), {
+    text,
+    user: auth.currentUser.email.split("@")[0],
+    userId: auth.currentUser.uid,
+    createdAt: serverTimestamp()
+  });
+  
+  input.value = "";
+  loadCommentsForPost(postId);
+};
+
+let currentVoiceCommentPostId = null;
+let currentVoiceCommentRecorder = null;
+let currentVoiceCommentChunks = [];
+let voiceCommentStartTime = null;
+
+window.recordVoiceComment = async (postId) => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    currentVoiceCommentPostId = postId;
+    currentVoiceCommentRecorder = new MediaRecorder(stream);
+    currentVoiceCommentChunks = [];
+    voiceCommentStartTime = Date.now();
+    
+    currentVoiceCommentRecorder.ondataavailable = (event) => {
+      currentVoiceCommentChunks.push(event.data);
+    };
+    
+    currentVoiceCommentRecorder.start();
+    document.getElementById(`voiceCommentUI-${postId}`).style.display = "block";
+    
+    const interval = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - voiceCommentStartTime) / 1000);
+      const mins = Math.floor(elapsed / 60);
+      const secs = elapsed % 60;
+      document.getElementById(`voiceCommentTime-${postId}`).innerText = `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    }, 100);
+    
+    window[`stopVoiceComment_${postId}_interval`] = interval;
+  } catch (e) {
+    console.error("Microphone access denied:", e);
+    alert("Please allow microphone access");
+  }
+};
+
+window.stopVoiceComment = (postId) => {
+  clearInterval(window[`stopVoiceComment_${postId}_interval`]);
+  currentVoiceCommentRecorder.stop();
+};
+
+window.sendVoiceComment = (postId) => {
+  if (currentVoiceCommentChunks.length === 0) return;
+  
+  const audioBlob = new Blob(currentVoiceCommentChunks, { type: "audio/webm" });
+  const reader = new FileReader();
+  
+  reader.onload = async (event) => {
+    const audioBase64 = event.target.result;
+    
+    await addDoc(collection(db, "posts", postId, "comments"), {
+      audio: audioBase64,
+      isVoice: true,
+      user: auth.currentUser.email.split("@")[0],
+      userId: auth.currentUser.uid,
+      createdAt: serverTimestamp()
+    });
+    
+    document.getElementById(`voiceCommentUI-${postId}`).style.display = "none";
+    currentVoiceCommentChunks = [];
+    loadCommentsForPost(postId);
+  };
+  
+  reader.readAsDataURL(audioBlob);
+};
+
+// Story Implementation
+// --- 1. STORY LOGIC ---
+const storiesList = document.getElementById("storiesList");
+const addStoryBtn = document.getElementById("addStoryBtn");
+
+addStoryBtn.onclick = async () => {
+  const imgUrl = prompt("Enter Image URL for your story:");
+  if (!imgUrl) return;
+
+  await addDoc(collection(db, "stories"), {
+    userId: auth.currentUser.uid,
+    user: auth.currentUser.email.split("@")[0],
+    image: imgUrl,
+    createdAt: serverTimestamp(),
+    expiresAt: Date.now() + (24 * 60 * 60 * 1000),
+    likes: [] // <--- ADD THIS LINE
+  });
+};
+
+const storyViewer = document.getElementById("storyViewer");
+const storyProgress = document.getElementById("storyProgress");
+let storyTimer;
+
+function loadStories() {
+  const q = query(collection(db, "stories"), orderBy("createdAt", "desc"));
+  onSnapshot(q, (snap) => {
+    storiesList.innerHTML = "";
+    const now = Date.now();
+    
+    snap.forEach((doc) => {
+      const s = doc.data();
+      if (s.expiresAt > now) {
+        const storyCircle = document.createElement("div");
+        storyCircle.style.cssText = "display: flex; flex-direction: column; align-items: center; gap: 5px; flex-shrink: 0;";
+        storyCircle.innerHTML = `
+          <div class="story-circle-inner" style="width: 65px; height: 65px; border-radius: 50%; border: 3px solid #667eea; padding: 2px; cursor: pointer;">
+            <img src="${s.image}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+          </div>
+          <span style="font-size: 11px; opacity: 0.8;">${s.user}</span>
+        `;
+        
+        // CLICK TO OPEN VIEWER
+        storyCircle.onclick = () => openStoryViewer(s, doc.id);
+        storiesList.appendChild(storyCircle);
+      }
+    });
+  });
+}
+
+function openStoryViewer(storyData, storyId) {
+  storyViewer.style.display = "flex";
+  document.getElementById("storyViewImg").src = storyData.image;
+  document.getElementById("storyViewUser").innerText = storyData.user;
+  document.getElementById("storyViewAvatar").src = storyData.image;
+
+  // Real-time Like Listener
+  const storyRef = doc(db, "stories", storyId);
+  const unsubscribeLikes = onSnapshot(storyRef, (docSnap) => {
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      const likes = data.likes || [];
+      document.getElementById("storyLikeCount").innerText = likes.length;
+      
+      // Change heart color if you already liked it
+      const hasLiked = likes.includes(auth.currentUser.uid);
+      document.getElementById("likeStoryBtn").style.background = hasLiked ? "white" : "rgba(255,255,255,0.1)";
+      document.getElementById("likeStoryBtn").style.color = hasLiked ? "red" : "white";
+    }
+  });
+
+  // Like Button Click
+  document.getElementById("likeStoryBtn").onclick = async () => {
+    const btn = document.getElementById("likeStoryBtn");
+    btn.style.transform = "scale(1.3)"; // Pop animation
+    setTimeout(() => btn.style.transform = "scale(1)", 200);
+
+    await updateDoc(storyRef, {
+      likes: arrayUnion(auth.currentUser.uid)
+    });
+
+    // Optional: Send notification to owner
+    if (storyData.userId !== auth.currentUser.uid) {
+      await addDoc(collection(db, "notifications"), {
+        to: storyData.userId,
+        from: auth.currentUser.email.split("@")[0],
+        type: "story_like",
+        timestamp: serverTimestamp()
+      });
+    }
+  };
+
+  // Progress Bar Logic (same as before)
+  let progress = 0;
+  clearInterval(storyTimer);
+  storyTimer = setInterval(() => {
+    progress += 1; 
+    storyProgress.style.width = progress + "%";
+    if (progress >= 100) {
+      unsubscribeLikes(); // Stop listening when closed
+      closeStoryViewer();
+    }
+  }, 50); // Adjusted for a 5-second story
+}
+
+function closeStoryViewer() {
+  storyViewer.style.display = "none";
+  clearInterval(storyTimer);
+}
+
+document.getElementById("closeStory").onclick = closeStoryViewer;
+// --- 2. GROUP CHAT LOGIC ---
+function loadGroups() {
+  const groupsListContainer = document.getElementById("groupsList"); // Ensure this ID exists in your sidebar
+  if (!groupsListContainer) return;
+
+  const q = query(collection(db, "groups"), where("members", "array-contains", auth.currentUser.uid));
+  onSnapshot(q, (snap) => {
+    groupsListContainer.innerHTML = "";
+    snap.forEach((docSnap) => {
+      const g = docSnap.data();
+      const div = document.createElement("div");
+      div.className = "friend-item"; // Use your existing friend-item style
+      div.innerHTML = `<span>👥 ${g.name}</span>`;
+      div.onclick = () => openGroupChat(docSnap.id, g.name);
+      groupsListContainer.appendChild(div);
+    });
+  });
+}
+
+window.openGroupChat = (groupId, groupName) => {
+  currentChatFriend = null; // Disable private chat mode
+  currentGroupId = groupId; // Enable group chat mode
+  
+  // Switch UI to messaging tab
+  document.getElementById("messagesBtn").click(); 
+  document.getElementById("noChatMessage").style.display = "none";
+  document.getElementById("chatContainer").style.display = "flex";
+  document.getElementById("chatHeader").innerText = `Group: ${groupName}`;
+  
+  // Listen for Group Messages
+  const q = query(collection(db, "groups", groupId, "messages"), orderBy("createdAt", "asc"));
+  onSnapshot(q, (snap) => {
+    const chatMessages = document.getElementById("chatMessages");
+    chatMessages.innerHTML = "";
+    snap.forEach((mDoc) => {
+      const msg = mDoc.data();
+      const isOwn = msg.sender === auth.currentUser.uid;
+      const msgEl = document.createElement("div");
+      msgEl.className = `message ${isOwn ? "own" : "other"}`;
+      msgEl.innerHTML = `
+        <small style="display:block; font-size:9px; opacity:0.6;">${msg.senderEmail}</small>
+        ${msg.text}
+      `;
+      chatMessages.appendChild(msgEl);
+    });
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  });
+};
+
+
+</script>
+
+</body>
+</html>
