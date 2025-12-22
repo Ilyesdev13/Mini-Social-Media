@@ -1426,34 +1426,30 @@ function loadNotifications() {
 
 window.acceptFriendRequest = async (requestId, friendId) => {
   try {
-    // Delete the friend request first
+    // 1. Delete the friend request from the database
     await deleteDoc(doc(db, "friendRequests", requestId));
     
+    // 2. Prepare references for both users
     const userRef = doc(db, "users", auth.currentUser.uid);
     const friendRef = doc(db, "users", friendId);
     
-    // Add friendId to current user's friends
+    // 3. Update YOUR friends list (so you can see them)
     await updateDoc(userRef, {
       friends: arrayUnion(friendId)
     });
     
-    // Add current user to friendId's friends
+    // 4. Update THEIR friends list (so they can see you)
     await updateDoc(friendRef, {
       friends: arrayUnion(auth.currentUser.uid)
     });
     
-    // Refresh both lists
-    loadFriends();
+    // Note: The UI will update automatically because loadFriends() 
+    // uses onSnapshot to listen for changes to the "users" document.
+    
+    alert("Friend request accepted!");
   } catch (e) {
     console.error("Error accepting friend request:", e);
-  }
-};
-
-window.declineFriendRequest = async (requestId) => {
-  try {
-    await deleteDoc(doc(db, "friendRequests", requestId));
-  } catch (e) {
-    console.error("Error declining friend request:", e);
+    alert("Something went wrong. Check the console.");
   }
 };
 
@@ -1772,3 +1768,4 @@ window.openGroupChat = (groupId, groupName) => {
 
 </body>
 </html>
+
