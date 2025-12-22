@@ -1424,32 +1424,43 @@ function loadNotifications() {
   });
 }
 
+// ✅ CORRECT - This follows your security rules
 window.acceptFriendRequest = async (requestId, friendId) => {
   try {
-    // 1. Delete the friend request from the database
-    await deleteDoc(doc(db, "friendRequests", requestId));
+    // 1. FIRST update the friend request status to "accepted"
+    const requestRef = doc(db, "friendRequests", requestId);
+    await updateDoc(requestRef, {
+      status: "accepted",  // This is REQUIRED by your security rules
+      updatedAt: serverTimestamp()  // Optional but good practice
+    });
     
-    // 2. Prepare references for both users
+    // 2. THEN add each other as friends
     const userRef = doc(db, "users", auth.currentUser.uid);
     const friendRef = doc(db, "users", friendId);
     
-    // 3. Update YOUR friends list (so you can see them)
     await updateDoc(userRef, {
       friends: arrayUnion(friendId)
     });
     
-    // 4. Update THEIR friends list (so they can see you)
     await updateDoc(friendRef, {
       friends: arrayUnion(auth.currentUser.uid)
     });
     
-    // Note: The UI will update automatically because loadFriends() 
-    // uses onSnapshot to listen for changes to the "users" document.
+    // 3. OPTIONAL: Delete the request after accepting
+    // You can either delete it now or keep it as a record
+    // await deleteDoc(requestRef);
     
-    alert("Friend request accepted!");
   } catch (e) {
     console.error("Error accepting friend request:", e);
-    alert("Something went wrong. Check the console.");
+    alert("Error: " + e.message);
+  }
+};
+
+window.declineFriendRequest = async (requestId) => {
+  try {
+    await deleteDoc(doc(db, "friendRequests", requestId));
+  } catch (e) {
+    console.error("Error declining friend request:", e);
   }
 };
 
@@ -1529,12 +1540,14 @@ window.addCommentToPost = async (postId) => {
   const text = input.value.trim();
   if (!text) return;
   
-  await addDoc(collection(db, "posts", postId, "comments"), {
-    text,
-    user: auth.currentUser.email.split("@")[0],
-    userId: auth.currentUser.uid,
-    createdAt: serverTimestamp()
-  });
+  // When sending a friend request:
+await addDoc(collection(db, "friendRequests"), {
+  from: auth.currentUser.uid,
+  fromEmail: auth.currentUser.email,
+  to: friendId,
+  status: "pending",  // ← ADD THIS FIELD
+  createdAt: serverTimestamp()
+});
   
   input.value = "";
   loadCommentsForPost(postId);
