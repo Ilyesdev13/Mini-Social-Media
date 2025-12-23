@@ -15,10 +15,18 @@ body {
   color: white;
   min-height: 100vh;
 }
-.story-circle-inner:hover {
-  transform: scale(1.05);
-  transition: 0.2s;
-  border-color: #764ba2 !important;
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(255, 255, 255, 0.1);
+  border-top: 5px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 /* NAVBAR */
@@ -107,6 +115,61 @@ button {
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
+.story-preview-box {
+  margin: 10px 0;
+  height: 300px; /* Increased from 180px */
+  border-radius: 12px;
+  background: rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+/* Update these in your <style> tag */
+#storyViewer {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: #000; /* Pure black background for stories */
+  z-index: 1000;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 🔥 FULL SCREEN STORY FIX */
+#storyViewMedia {
+  width: 100vw;       /* Full viewport width */
+  height: 100vh;      /* Full viewport height */
+  max-width: 500px;   /* Limits width on desktop so it doesn't look stretched */
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;   /* Black background for letterboxing */
+  position: relative;
+  overflow: hidden;
+}
+
+#storyViewMedia img {
+  width: 100%;        /* Force image to fill width */
+  height: 100%;       /* Force image to fill height */
+  object-fit: contain; /* OR use 'cover' if you want it to fill the whole screen (but it might crop) */
+  display: block;
+}
+
+.story-preview-box img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain; /* Shows full image in preview */
+  display: none; /* Changed to block via JS when image loads */
+}
+
+.story-preview-box span {
+  color: #777;
+  font-size: 14px;
+}
+
 button:hover { 
   transform: translateY(-2px);
   box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
@@ -131,11 +194,14 @@ button:active {
   transform: translateY(-4px);
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.2);
 }
+/* Find this in your <style> tag and update it */
 .post img {
   width: 100%;
+  max-height: 400px; /* Adjust this number to your liking */
   border-radius: 12px;
   margin-top: 12px;
-  object-fit: cover;
+  object-fit: contain; /* This keeps the full image visible without cropping */
+  background: rgba(0,0,0,0.2); /* Adds a slight background for transparent images */
 }
 .actions {
   display: flex;
@@ -216,7 +282,369 @@ button:active {
   gap: 20px;
   height: calc(100vh - 100px);
 }
+/* =================== */
+/* VOICE MESSAGES STYLING */
+/* =================== */
 
+/* Voice message container */
+.voice-message-container {
+  padding: 12px 16px;
+  border-radius: 20px;
+  margin: 8px 0;
+  max-width: 70%;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  position: relative;
+}
+
+/* Own voice messages (sent by current user) */
+.message.own .voice-message-container {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  margin-left: auto;
+  border-bottom-right-radius: 5px;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+/* Other voice messages (received) */
+.message.other .voice-message-container {
+  background: rgba(255, 255, 255, 0.15);
+  margin-right: auto;
+  border-bottom-left-radius: 5px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Voice badge (for visual indicator) */
+.voice-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.voice-badge::before {
+  content: "🎤";
+  font-size: 14px;
+}
+
+/* Audio player styling - Modern look */
+.voice-message-player {
+  width: 100% !important;
+  min-width: 250px;
+  height: 45px !important;
+  border-radius: 25px !important;
+  background: rgba(0, 0, 0, 0.3) !important;
+  border: 2px solid rgba(255, 255, 255, 0.2) !important;
+  outline: none !important;
+  transition: all 0.3s ease !important;
+  padding: 0 10px !important;
+}
+
+.voice-message-player:hover {
+  background: rgba(0, 0, 0, 0.4) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Customize webkit audio controls */
+.voice-message-player::-webkit-media-controls-panel {
+  background: transparent !important;
+  border-radius: 20px !important;
+  padding: 0 5px !important;
+}
+/* PROFILE GRID */
+.public-posts-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+/* PROFILE CARD */
+.profile-post {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #111;
+  color: #fff;
+  cursor: pointer;
+}
+
+/* TEXT */
+.profile-post-text {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 12px;
+  font-size: 13px;
+  line-height: 1.4;
+  opacity: 1;
+  transition: opacity 0.25s ease;
+}
+
+/* IMAGE */
+.profile-post-img {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.profile-post-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block; /* IMPORTANT */
+}
+
+/* ACTIVE */
+.profile-post.show-image .profile-post-text {
+  opacity: 0;
+}
+
+.profile-post.show-image .profile-post-img {
+  opacity: 1;
+}
+
+
+
+.voice-message-player::-webkit-media-controls-play-button {
+  background-color: #667eea !important;
+  border-radius: 50% !important;
+  margin-right: 10px !important;
+}
+
+.voice-message-player::-webkit-media-controls-volume-slider-container,
+.voice-message-player::-webkit-media-controls-volume-slider {
+  background-color: #667eea !important;
+  border-radius: 10px !important;
+}
+
+.voice-message-player::-webkit-media-controls-current-time-display,
+.voice-message-player::-webkit-media-controls-time-remaining-display {
+  color: white !important;
+  font-size: 12px !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+}
+
+.voice-message-player::-webkit-media-controls-timeline {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  border-radius: 10px !important;
+  height: 4px !important;
+  margin: 0 10px !important;
+}
+
+.voice-message-player::-webkit-media-controls-timeline-progress-bar {
+  background: linear-gradient(90deg, #667eea, #764ba2) !important;
+  border-radius: 10px !important;
+}
+
+/* Comments voice messages */
+.comment .voice-message-container {
+  max-width: 90%;
+  margin: 8px 0;
+}
+
+.comment .voice-message-player {
+  min-width: 200px;
+  height: 40px !important;
+}
+
+/* Voice recording UI */
+.voice-recording-ui {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 15px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 15px;
+  margin: 10px 0;
+  border: 2px solid rgba(245, 87, 108, 0.3);
+  animation: pulseBorder 2s infinite;
+}
+
+@keyframes pulseBorder {
+  0%, 100% { border-color: rgba(245, 87, 108, 0.3); }
+  50% { border-color: rgba(245, 87, 108, 0.6); }
+}
+
+.recording-time {
+  font-family: monospace;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  color: #ff4757;
+  text-shadow: 0 0 10px rgba(255, 71, 87, 0.5);
+}
+
+.recording-controls {
+  display: flex;
+  gap: 10px;
+}
+
+.recording-controls button {
+  flex: 1;
+  padding: 12px !important;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+/* STORY BAR */
+.stories-bar {
+  display: flex;
+  gap: 14px;
+  padding: 10px 0;
+  overflow-x: auto;
+}
+
+.story-circle {
+  width: 72px;
+  text-align: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+/* 🔥 STORY VIEWER IMAGE FIX */
+#storyViewMedia {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000; /* Black bars for images that don't fit perfectly */
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+#storyViewMedia img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain; /* This prevents the "cropping" error */
+  display: block;
+}
+.story-circle-inner {
+  width: 64px;
+  height: 64px;
+  padding: 3px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, #ff005d, #ffb400);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: auto;
+  transition: transform 0.2s;
+}
+
+.story-circle-inner:hover {
+  transform: scale(1.05);
+}
+
+.story-circle-inner img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #000;
+}
+
+.story-circle span {
+  font-size: 12px;
+  margin-top: 5px;
+  display: block;
+  opacity: 0.9;
+}
+
+
+.stop-recording {
+  background: linear-gradient(135deg, #ff4757, #ff6b81) !important;
+}
+
+.send-recording {
+  background: linear-gradient(135deg, #2ed573, #1dd1a1) !important;
+}
+
+/* Audio loading indicator */
+.audio-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.audio-loading::after {
+  content: "";
+  width: 30px;
+  height: 30px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top: 3px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Voice message duration indicator */
+.voice-duration {
+  font-size: 11px;
+  opacity: 0.7;
+  margin-top: 5px;
+  text-align: right;
+  font-style: italic;
+}
+
+/* Mobile optimization for audio */
+@media (max-width: 768px) {
+  .voice-message-container {
+    max-width: 85%;
+    color: black;
+  }
+  
+  .voice-message-player {
+    min-width: 200px;
+    height: 40px !important;
+  }
+  
+  .comment .voice-message-player {
+    min-width: 150px;
+    height: 35px !important;
+  }
+  
+  .voice-recording-ui {
+    padding: 12px;
+  }
+  
+  .recording-time {
+    font-size: 20px;
+  }
+}
+
+/* Fallback for non-webkit browsers */
+audio.voice-message-player:not(:-webkit-media-controls-panel) {
+  background: rgba(0, 0, 0, 0.3) !important;
+  border-radius: 25px !important;
+  padding: 5px !important;
+}
+
+/* Voice message in notifications/small contexts */
+.small-voice-player {
+  width: 100%;
+  height: 30px !important;
+  border-radius: 15px !important;
+  background: rgba(0, 0, 0, 0.2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
 .app-sidebar {
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
@@ -375,27 +803,34 @@ audio {
   color: rgba(255, 255, 255, 0.5);
   text-align: center;
 }
+.story-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0,0,0,0.35);
+  color: white;
+  border: none;
+  font-size: 30px;
+  padding: 12px 16px;
+  cursor: pointer;
+  z-index: 1000;
+  border-radius: 50%;
+}
+
+.story-nav.left {
+  left: 15px;
+}
+
+.story-nav.right {
+  right: 15px;
+}
+
 
 /* COMMENTS */
 .comments-section {
   margin-top: 15px;
   padding-top: 15px;
   border-top: 1px solid rgba(255, 255, 255, 0.2);
-}
-.story-circle {
-  min-width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  border: 3px solid #667eea;
-  padding: 2px;
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-.story-circle img {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
 }
 .group-item {
   background: rgba(102, 126, 234, 0.2);
@@ -448,7 +883,7 @@ audio {
   background: linear-gradient(135deg, #f093fb, #f5576c);
   border: none;
   border-radius: 10px;
-  color: white;
+  color: rgb(0, 0, 0);
   cursor: pointer;
   font-weight: 600;
   transition: all 0.3s ease;
@@ -496,6 +931,37 @@ audio {
 </head>
 
 <body>
+  <div id="globalLoader" style="
+    position: fixed; 
+    inset: 0; 
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+    z-index: 9999; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center;">
+    
+    <div class="spinner"></div>
+    <h2 style="margin-top: 20px; font-weight: 400; letter-spacing: 2px;">LOADING APP...</h2>
+</div>
+<div id="postModal" class="modal">
+  <div class="modal-content">
+    <h3>Create Post</h3>
+
+
+
+    <textarea id="postText" placeholder="What's on your mind?"></textarea>
+
+    <input id="mediaUrl" placeholder="Image url">
+
+    <div id="mediaPreview" style="margin-top:10px; display:none;"></div>
+
+    <button id="postBtn">Post</button>
+    <button id="closePostModal" style="background:#333;">Cancel</button>
+  </div>
+</div>
+
+
 
 <header class="navbar" id="navbar" style="display:none;">
   <span class="logo">MiniSocial</span>
@@ -518,7 +984,28 @@ audio {
   <button id="registerBtn">Register</button>
   <p id="authMsg"></p>
 </div>
+<div id="publicProfileModal" class="modal">
+  <div class="modal-content" style="max-width: 500px;">
+    <div style="text-align: center; margin-bottom: 20px;">
+      <div id="publicProfilePic" style="width: 100px; height: 100px; margin: 0 auto 15px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; font-size: 40px; overflow: hidden;">👤</div>
+      <h3 id="publicProfileEmail" style="margin: 0;">User Email</h3>
+    </div>
+    
+    <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+      <p><strong>Bio:</strong></p>
+      <p id="publicProfileBio" style="font-style: italic; opacity: 0.9;">No bio available.</p>
+    </div>
 
+    <div style="border-top: 1px solid rgba(255,255,255,0.2); padding-top: 15px;">
+      <h4 style="margin-bottom: 15px;">User Posts</h4>
+      <p>click to see image</p>
+      <div id="publicProfilePosts" style="max-height: 300px; overflow-y: auto;">
+        </div>
+    </div>
+    
+    <button id="closePublicProfile" style="background:#333; margin-top: 15px;">Close</button>
+  </div>
+</div>
 <div id="app" style="display:none;">
   <!-- SIDEBAR -->
   <div class="app-sidebar">
@@ -535,70 +1022,77 @@ audio {
   </div>
   
   <!-- MAIN CONTENT -->
-  <div class="app-main">
+ <div class="app-main">
     <div class="feed-section" id="feedSection">
         <div class="stories-container" id="storiesContainer" style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 15px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1);">
-  <div id="addStoryBtn" style="min-width: 70px; height: 70px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px dashed rgba(255,255,255,0.5);">➕</div>
-  <div id="storiesList" style="display: flex; gap: 10px;"></div>
-</div>
+            <div id="addStoryBtn" style="min-width: 70px; height: 70px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px dashed rgba(255,255,255,0.5);">➕</div>
+            <div id="storiesList" style="display: flex; gap: 10px;"></div>
+        </div>
 
-<div id="groupModal" class="modal">
-  <div class="modal-content">
-    <h3>Create Group Chat</h3>
-    <input id="groupName" placeholder="Group Name">
-    <div id="memberSelection" style="max-height: 150px; overflow-y: auto; margin: 10px 0; border: 1px solid rgba(255,255,255,0.2); padding: 5px; border-radius: 8px;">
-      </div>
-    <button id="createGroupBtn">Create Group</button>
-    <button id="closeGroupModal" style="background:#333;">Cancel</button>
-  </div>
-</div>
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h3 style="margin: 0;">Feed</h3>
-        <button id="openPostModal" style="padding: 8px 16px; width: auto;">➕ Post</button>
-      </div>
-      <div id="feed"></div>
+        <div id="groupModal" class="modal">
+            <div class="modal-content">
+                <h3>Create Group Chat</h3>
+                <input id="groupName" placeholder="Group Name">
+                <div id="memberSelection" style="max-height: 150px; overflow-y: auto; margin: 10px 0; border: 1px solid rgba(255,255,255,0.2); padding: 5px; border-radius: 8px;">
+                </div>
+                <button id="createGroupBtn">Create Group</button>
+                <button id="closeGroupModal" style="background:#333;">Cancel</button>
+            </div>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0;">Feed</h3>
+        </div>
+        <div id="feed"></div>
     </div>
     
     <div class="chat-section" id="chatSection" style="display: none;">
-      <h3 style="margin: 0 0 15px 0;">Messages</h3>
-      <div class="no-chat" id="noChatMessage">
-        <p>Select a friend to chat</p>
-      </div>
-      <div id="chatContainer" style="display: none; display: flex; flex-direction: column; height: 100%;">
-        <div style="font-weight: 600; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.2);" id="chatHeader"></div>
-        <div class="chat-messages" id="chatMessages"></div>
-        <div style="display: none; margin-top: 10px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 10px; text-align: center;" id="voiceChatRecordingUI">
-          <p style="margin-bottom: 10px; font-weight: 600;" id="chatRecordingTime">00:00</p>
-          <div style="display: flex; gap: 10px;">
-            <button id="stopVoiceChatBtn" style="flex: 1; background: #ff4757; border: none; border-radius: 10px; color: white; cursor: pointer; font-weight: 600; padding: 10px;">⏹ Stop</button>
-            <button id="sendVoiceChatBtn" style="flex: 1; background: linear-gradient(135deg, #f093fb, #f5576c); border: none; border-radius: 10px; color: white; cursor: pointer; font-weight: 600; padding: 10px;">📤 Send</button>
-          </div>
+        <h3 style="margin: 0 0 15px 0;">Messages</h3>
+        <div class="no-chat" id="noChatMessage">
+            <p>Select a friend to chat</p>
         </div>
-        <div class="chat-input-group">
-          <input id="messageInput" placeholder="Type a message..." style="margin: 0;">
-          <button id="sendMessageBtn" style="padding: 10px 20px; margin: 0; width: auto;">Send</button>
-          <button id="recordVoiceChatBtn" class="voice-btn" style="padding: 10px 20px; margin: 0; width: auto; background: linear-gradient(135deg, #f093fb, #f5576c);">🎤</button>
+        <div id="chatContainer" style="display: none; flex-direction: column; height: 100%;">
+            <div style="font-weight: 600; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.2);" id="chatHeader"></div>
+            <div class="chat-messages" id="chatMessages"></div>
+            <div style="display: none; margin-top: 10px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 10px; text-align: center;" id="voiceChatRecordingUI">
+                <p style="margin-bottom: 10px; font-weight: 600;" id="chatRecordingTime">00:00</p>
+                <div style="display: flex; gap: 10px;">
+                    <button id="stopVoiceChatBtn" style="flex: 1; background: #ff4757; border: none; border-radius: 10px; color: white; cursor: pointer; font-weight: 600; padding: 10px;">⏹ Stop</button>
+                    <button id="sendVoiceChatBtn" style="flex: 1; background: linear-gradient(135deg, #f093fb, #f5576c); border: none; border-radius: 10px; color: white; cursor: pointer; font-weight: 600; padding: 10px;">📤 Send</button>
+                </div>
+            </div>
+            <div class="chat-input-group">
+                <input id="messageInput" placeholder="Type a message..." style="margin: 0;">
+                <button id="sendMessageBtn" style="padding: 10px 20px; margin: 0; width: auto;">Send</button>
+                <button id="recordVoiceChatBtn" class="voice-btn" style="padding: 10px 20px; margin: 0; width: auto; background: linear-gradient(135deg, #f093fb, #f5576c);">🎤</button>
+            </div>
         </div>
-      </div>
     </div>
     
     <div class="chat-section" id="notificationsSection" style="display: none;">
-      <h3 style="margin: 0 0 15px 0;">Friend Requests</h3>
-      <div id="notificationsList"></div>
+        <h3 style="margin: 0 0 15px 0;">Friend Requests</h3>
+        <div id="notificationsList"></div>
     </div>
+</div>
+
+<!-- STORY MODAL -->
+<div id="storyModal" class="modal">
+  <div class="modal-content">
+    <h3>Create story</h3>
+
+
+    <input id="storyImageUrl" placeholder="Story image URL">
+
+    <div class="story-preview-box">
+      <img id="storyPreview" />
+      <span id="storyPreviewText">Preview</span>
+    </div>
+
+    <button id="storyPostBtn">Post Story</button>
+    <button id="closeStoryModal" style="background:#333;">Cancel</button>
   </div>
 </div>
 
-<!-- POST MODAL -->
-<div id="postModal" class="modal">
-  <div class="modal-content">
-    <h3>Create Post</h3>
-    <textarea id="postText" placeholder="Caption..."></textarea>
-    <input id="imageUrl" placeholder="Image URL (optional)">
-    <button id="postBtn">Post</button>
-    <button id="closePostModal" style="background:#333;">Cancel</button>
-  </div>
-</div>
 
 <!-- ADD FRIEND MODAL -->
 <div id="addFriendModal" class="modal">
@@ -622,9 +1116,17 @@ audio {
       <input type="file" id="profilePicInput" accept="image/*" style="display: none;">
       <button id="uploadProfilePicBtn" style="width: 100%;">📸 Change Picture</button>
     </div>
+
     <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
       <p><strong>Email:</strong> <span id="profileEmail"></span></p>
-      <p><strong>Friends:</strong> <span id="profileFriendCount">0</span></p>
+      
+      <div style="margin-top: 15px;">
+        <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px; opacity: 0.8;">About Me:</label>
+        <textarea id="profileBioInput" placeholder="Tell us about yourself..." style="height: 80px; font-size: 14px; margin-bottom: 10px;"></textarea>
+        <button id="saveBioBtn" style="width: 100%; background: #2ed573; font-size: 14px;">Save Bio</button>
+      </div>
+
+      <p style="margin-top: 15px;"><strong>Friends:</strong> <span id="profileFriendCount">0</span></p>
     </div>
     <button id="closeProfileModal" style="background:#333; width: 100%;">Close</button>
   </div>
@@ -656,6 +1158,8 @@ audio {
   </div>
 </div>
 <div id="storyViewer" class="modal" style="background: rgba(0,0,0,0.95); z-index: 3000; display:none; flex-direction:column; align-items:center; justify-content:center;">
+  <div class="story-nav left" onclick="prevStory()">‹</div>
+    <div class="story-nav right" onclick="nextStory()">›</div>
   <div style="position: absolute; top: 10px; left: 0; width: 100%; height: 4px; display: flex; gap: 5px; padding: 0 10px;">
     <div id="storyProgress" style="height: 100%; background: white; width: 0%; transition: width 0.1s linear;"></div>
   </div>
@@ -667,7 +1171,11 @@ audio {
       <span id="closeStory" style="margin-left: auto; cursor: pointer; font-size: 32px;">&times;</span>
     </div>
 
-    <img id="storyViewImg" src="" style="width: 100%; border-radius: 12px; max-height: 70vh; object-fit: contain; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+    <div id="storyViewMedia"
+     style="width:100%; max-height:70vh; border-radius:12px; overflow:hidden;
+            box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+</div>
+
 
     <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: 25px; gap: 8px;">
       <button id="likeStoryBtn" style="background: rgba(255,255,255,0.1); border: 2px solid white; border-radius: 50%; width: 70px; height: 70px; font-size: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s;">
@@ -708,6 +1216,9 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+let currentStories = [];
+let currentStoryIndex = 0;
+let unsubscribeLikes = null;
 const auth = getAuth(app);
 const db = getFirestore(app);
 /* DOM ELEMENTS */
@@ -730,7 +1241,7 @@ const openPostModal = document.getElementById("openPostModal");
 const closePostModal = document.getElementById("closePostModal");
 
 const postText = document.getElementById("postText");
-const imageUrl = document.getElementById("imageUrl");
+const imageUrl = document.getElementById("mediaUrl");
 const postBtn = document.getElementById("postBtn");
 
 const addFriendModal = document.getElementById("addFriendModal");
@@ -774,6 +1285,7 @@ let currentCommentPostId = null;
 let mediaRecorder = null;
 let audioChunks = [];
 let recordingStartTime = null;
+let allUsersStoryBundles = [];
 
 
 /* AUTH */
@@ -787,6 +1299,10 @@ logoutBtn.onclick = () => signOut(auth);
 
 /* STATE */
 onAuthStateChanged(auth, async user => {
+  // Show the loader immediately when auth state starts checking
+  const globalLoader = document.getElementById("globalLoader");
+  if (globalLoader) globalLoader.style.display = "flex";
+
   if (user) {
     authDiv.style.display = "none";
     appDiv.style.display = "grid";
@@ -804,35 +1320,54 @@ onAuthStateChanged(auth, async user => {
         createdAt: serverTimestamp()
       });
     } else {
-      // Update navbar profile pic from database
       const userData = userSnap.data();
-      if (userData.profilePic) {
+      // Use 'pfp' or 'profilePic' - make sure this matches your upload logic!
+      const userImg = userData.pfp || userData.profilePic;
+      if (userImg) {
         navbarProfilePic.textContent = "";
-        navbarProfilePic.style.backgroundImage = `url(${userData.profilePic})`;
+        navbarProfilePic.style.backgroundImage = `url(${userImg})`;
         navbarProfilePic.style.backgroundSize = "cover";
         navbarProfilePic.style.backgroundPosition = "center";
       }
     }
     
-    // Listen to profile pic updates
     onSnapshot(userRef, (snap) => {
-      if (snap.exists() && snap.data().profilePic) {
+      const data = snap.data();
+      const userImg = data?.pfp || data?.profilePic;
+      if (snap.exists() && userImg) {
         navbarProfilePic.textContent = "";
-        navbarProfilePic.style.backgroundImage = `url(${snap.data().profilePic})`;
-        navbarProfilePic.style.backgroundSize = "cover";
-        navbarProfilePic.style.backgroundPosition = "center";
+        navbarProfilePic.style.backgroundImage = `url(${userImg})`;
       }
     });
-    
-    loadFeed();
-    loadFriends();
-    loadNotifications();
-    loadStories();
-    loadGroups();
+
+    // 🔥 WAITING FOR DATA
+    // We wrap your load functions in Promise.all so the loader hides 
+    // ONLY after everything is fetched from Firebase.
+    try {
+      await Promise.all([
+        loadFeed(),
+        loadFriends(),
+        loadNotifications(),
+        loadStories(),
+        loadGroups()
+      ]);
+    } catch (err) {
+      console.error("Loading error:", err);
+    }
+
+    // ✅ Everything is ready! Hide the loader.
+    if (globalLoader) {
+      setTimeout(() => {
+        globalLoader.style.opacity = "0"; // Smooth fade out
+        setTimeout(() => globalLoader.style.display = "none", 500);
+      }, 500);
+    }
+
   } else {
     authDiv.style.display = "block";
     appDiv.style.display = "none";
     navbar.style.display = "none";
+    if (globalLoader) globalLoader.style.display = "none";
   }
 });
 
@@ -889,6 +1424,7 @@ addFriendBtn.onclick = async () => {
       from: auth.currentUser.uid,
       fromEmail: auth.currentUser.email,
       to: friendId,
+      status: "pending", // MUST ADD THIS to match rules
       createdAt: serverTimestamp()
     });
     
@@ -1056,19 +1592,43 @@ sendVoiceChatBtn.onclick = async () => {
 };
 
 /* PROFILE */
+// 1. Updated Open Modal Function
 openProfileModal.onclick = () => {
   profileModal.style.display = "flex";
   profileEmail.innerText = auth.currentUser.email;
+  
   const userRef = doc(db, "users", auth.currentUser.uid);
   getDoc(userRef).then(snap => {
-    profileFriendCount.innerText = snap.data().friends?.length || 0;
-    if (snap.data().profilePic) {
-      profilePicDisplay.textContent = "";
-      profilePicDisplay.style.backgroundImage = `url(${snap.data().profilePic})`;
-      profilePicDisplay.style.backgroundSize = "cover";
-      profilePicDisplay.style.backgroundPosition = "center";
+    if (snap.exists()) {
+      const data = snap.data();
+      
+      // Load Profile Pic (Existing Logic)
+      profileFriendCount.innerText = data.friends?.length || 0;
+      if (data.profilePic) {
+        profilePicDisplay.textContent = "";
+        profilePicDisplay.style.backgroundImage = `url(${data.profilePic})`;
+        profilePicDisplay.style.backgroundSize = "cover";
+        profilePicDisplay.style.backgroundPosition = "center";
+      }
+
+      // Load Bio (New Logic)
+      document.getElementById("profileBioInput").value = data.bio || "";
     }
   });
+};
+
+// 2. New Save Bio Function
+document.getElementById("saveBioBtn").onclick = async () => {
+  const bioValue = document.getElementById("profileBioInput").value;
+  const userRef = doc(db, "users", auth.currentUser.uid);
+  
+  try {
+    await updateDoc(userRef, { bio: bioValue });
+    alert("Bio saved!");
+  } catch (error) {
+    console.error("Error saving bio:", error);
+    alert("Error saving bio.");
+  }
 };
 closeProfileModal.onclick = () => profileModal.style.display = "none";
 
@@ -1078,29 +1638,26 @@ profilePicInput.onchange = async (e) => {
   const file = e.target.files[0];
   if (!file) return;
   
-  // Convert to base64
   const reader = new FileReader();
   reader.onload = async (event) => {
     const base64 = event.target.result;
     const userRef = doc(db, "users", auth.currentUser.uid);
+    
+    // 🔥 CHANGE: Use 'pfp' instead of 'profilePic'
     await updateDoc(userRef, {
-      profilePic: base64
+      pfp: base64 
     });
     
-    // Update all UI elements
-    profilePicDisplay.textContent = "";
-    profilePicDisplay.style.backgroundImage = `url(${base64})`;
-    profilePicDisplay.style.backgroundSize = "cover";
-    profilePicDisplay.style.backgroundPosition = "center";
-    
-    navbarProfilePic.textContent = "";
-    navbarProfilePic.style.backgroundImage = `url(${base64})`;
-    navbarProfilePic.style.backgroundSize = "cover";
-    navbarProfilePic.style.backgroundPosition = "center";
+    // Update UI elements
+    [profilePicDisplay, navbarProfilePic].forEach(el => {
+      el.textContent = "";
+      el.style.backgroundImage = `url(${base64})`;
+      el.style.backgroundSize = "cover";
+      el.style.backgroundPosition = "center";
+    });
   };
   reader.readAsDataURL(file);
 };
-
 /* USER PROFILE VIEWING */
 window.closeUserProfile = () => {
   document.getElementById("userProfileModal").style.display = "none";
@@ -1165,10 +1722,10 @@ function loadFeed() {
     const reactCounts = Object.entries(reactions).map(([emoji, users]) => `${emoji} ${users?.length || 0}`).join(' ');
     const isOwner = p.userId === uid;
 
-    feed.innerHTML += `
-      <div class="post">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-          <b>${p.user}</b>
+  feed.innerHTML += `
+    <div class="post">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+       <b onclick="viewPublicProfile('${p.userId}')" style="cursor: pointer; color: #667eea; text-decoration: underline;">${p.user}</b>
           ${isOwner ? `<div style="display: flex; gap: 5px;">
             <button onclick="editPost('${d.id}')" style="padding: 4px 8px; font-size: 12px; background: rgba(102,126,234,0.3); border: none; border-radius: 4px; color: white; cursor: pointer;">✏️</button>
             <button onclick="deletePost('${d.id}')" style="padding: 4px 8px; font-size: 12px; background: rgba(255,71,87,0.3); border: none; border-radius: 4px; color: white; cursor: pointer;">🗑️</button>
@@ -1299,6 +1856,25 @@ window.editComment = async (postId, commentId) => {
     alert("Error editing comment");
   }
 };
+window.nextStory = () => {
+  // Check if there is another story in the array
+  if (currentStoryIndex < currentStories.length - 1) {
+    currentStoryIndex++;
+    // This updates the viewer with the next story's data
+    displayStory(currentStories[currentStoryIndex]); 
+  } else {
+    // If it's the last one, close the viewer
+    document.getElementById("storyViewer").style.display = "none";
+  }
+};
+
+window.prevStory = () => {
+  // Check if we aren't at the first story
+  if (currentStoryIndex > 0) {
+    currentStoryIndex--;
+    displayStory(currentStories[currentStoryIndex]);
+  }
+};
 
 /* LOAD FRIENDS */
 function loadFriends() {
@@ -1349,8 +1925,11 @@ window.deleteFriend = async (friendId) => {
     
     await updateDoc(userRef, { friends: arrayRemove(friendId) });
     await updateDoc(friendRef, { friends: arrayRemove(uid) });
+    
+    alert("Friend removed successfully");
   } catch (e) {
-    alert("Error removing friend");
+    console.error("Error removing friend:", e);
+    alert("Error removing friend: " + e.message);
   }
 };
 
@@ -1358,16 +1937,27 @@ window.deleteFriend = async (friendId) => {
 window.openChat = function(friendId, friendEmail) {
   currentChatFriend = friendId;
   
-  // Update UI
+  // Update UI - highlight the active friend in the sidebar
   document.querySelectorAll(".friend-item").forEach(el => el.classList.remove("active"));
-  event.target.closest(".friend-item").classList.add("active");
+  if (window.event && window.event.currentTarget) {
+    window.event.currentTarget.classList.add("active");
+  }
   
   noChatMessage.style.display = "none";
   chatContainer.style.display = "flex";
-  chatHeader.innerText = `💬 ${friendEmail.split("@")[0]}`;
+
+  // 1️⃣ HEADER NAME: Remains clickable
+  const displayName = friendEmail.split("@")[0];
+  chatHeader.innerHTML = `
+    💬 <span style="cursor: pointer; text-decoration: underline; color: #ffb400;" 
+             onclick="viewPublicProfile('${friendId}')">
+      ${displayName}
+    </span>
+  `;
+
   chatMessages.innerHTML = "";
   
-  // Load messages
+  // Load messages from Firestore
   const conversationId = [auth.currentUser.uid, friendId].sort().join("_");
   const q = query(
     collection(db, "conversations", conversationId, "messages"),
@@ -1382,10 +1972,23 @@ window.openChat = function(friendId, friendEmail) {
       const msgEl = document.createElement("div");
       msgEl.className = `message ${isOwn ? "own" : "other"}`;
       
+      // 2️⃣ MESSAGE NAME: Now UNCLICKABLE plain text
+      const nameInChat = msg.senderEmail ? msg.senderEmail.split('@')[0] : 'User';
+      const senderLabel = `
+        <div style="font-size: 10px; opacity: 0.7; margin-bottom: 3px;">
+          ${nameInChat}
+        </div>`;
+
       if (msg.isVoice) {
-        msgEl.innerHTML = `<audio controls class="voice-message-player"><source src="${msg.audio}" type="audio/webm"></audio>`;
+        msgEl.innerHTML = `
+          ${senderLabel}
+          <audio controls class="voice-message-player">
+            <source src="${msg.audio}" type="audio/webm">
+          </audio>`;
       } else {
-        msgEl.textContent = msg.text;
+        msgEl.innerHTML = `
+          ${senderLabel}
+          <div>${msg.text}</div>`;
       }
       
       chatMessages.appendChild(msgEl);
@@ -1394,25 +1997,102 @@ window.openChat = function(friendId, friendEmail) {
   });
 }
 
+/* SEND FRIEND REQUEST */
+window.sendFriendRequest = async (friendId, friendEmail) => {
+  try {
+    // Validate inputs
+    if (!friendId || friendId === auth.currentUser.uid) {
+      alert("Invalid friend selection");
+      return;
+    }
+    
+    // Check if already friends
+    const userSnap = await getDoc(doc(db, "users", auth.currentUser.uid));
+    if (userSnap.exists()) {
+      const friends = userSnap.data().friends || [];
+      if (friends.includes(friendId)) {
+        alert("You are already friends! 👥");
+        return;
+      }
+    }
+    
+    // Check if request already exists (both directions)
+    const sentQ = query(
+      collection(db, "friendRequests"), 
+      where("from", "==", auth.currentUser.uid),
+      where("to", "==", friendId)
+    );
+    const receivedQ = query(
+      collection(db, "friendRequests"), 
+      where("from", "==", friendId),
+      where("to", "==", auth.currentUser.uid)
+    );
+    
+    const [sentSnap, receivedSnap] = await Promise.all([
+      getDocs(sentQ),
+      getDocs(receivedQ)
+    ]);
+    
+    if (!sentSnap.empty) {
+      alert("Friend request already sent! ⏳");
+      return;
+    }
+    
+    if (!receivedSnap.empty) {
+      alert("This user already sent you a friend request! Check your notifications 🔔");
+      return;
+    }
+    
+    // Create the friend request with ALL required fields
+    // Replace your addDoc section with this:
+await addDoc(collection(db, "friendRequests"), {
+  from: auth.currentUser.uid,
+  fromEmail: auth.currentUser.email,
+  to: friendId,
+  status: "pending", // MUST ADD THIS to match rules
+  createdAt: serverTimestamp()
+});
+    
+    console.log("Friend request sent successfully");
+    alert("Friend request sent! ✅");
+  } catch (e) {
+    console.error("Error sending friend request:", e);
+    alert("Error sending friend request: " + e.message);
+  }
+};
+
 /* LOAD NOTIFICATIONS */
 function loadNotifications() {
-  const q = query(collection(db, "friendRequests"), where("to", "==", auth.currentUser.uid));
+  const q = query(
+    collection(db, "friendRequests"), 
+    where("to", "==", auth.currentUser.uid),
+    where("status", "==", "pending")  // Only show pending requests
+  );
+  
   onSnapshot(q, (snap) => {
     const requests = [];
     snap.forEach(doc => {
       requests.push({ id: doc.id, ...doc.data() });
     });
     
+    console.log("Loaded notifications:", requests.length);
+    
     notificationBadge.innerText = requests.length;
     notificationBadge.style.display = requests.length > 0 ? "flex" : "none";
     
     notificationsList.innerHTML = "";
+    
+    if (requests.length === 0) {
+      notificationsList.innerHTML = "<p style='text-align: center; opacity: 0.6; padding: 20px;'>No notifications</p>";
+      return;
+    }
+    
     requests.forEach(req => {
       const notifDiv = document.createElement("div");
       notifDiv.style.cssText = "background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.2);";
       notifDiv.innerHTML = `
         <div style="font-weight: 600; margin-bottom: 10px;">
-          ${req.fromEmail.split("@")[0]} wants to be your friend
+          ${req.fromEmail ? req.fromEmail.split("@")[0] : 'Someone'} wants to be your friend
         </div>
         <div style="display: flex; gap: 10px;">
           <button style="flex: 1; padding: 8px 12px; background: linear-gradient(135deg, #667eea, #764ba2); border: none; border-radius: 8px; color: white; cursor: pointer; font-weight: 600;" onclick="acceptFriendRequest('${req.id}', '${req.from}')">✅ Accept</button>
@@ -1421,46 +2101,74 @@ function loadNotifications() {
       `;
       notificationsList.appendChild(notifDiv);
     });
+  }, (error) => {
+    console.error("Error loading notifications:", error);
   });
 }
 
-// ✅ CORRECT - This follows your security rules
+/* ACCEPT FRIEND REQUEST */
 window.acceptFriendRequest = async (requestId, friendId) => {
+  console.log("Accepting friend request:", requestId, friendId);
+  
   try {
-    // 1. FIRST update the friend request status to "accepted"
+    // Get the request first to verify it exists
     const requestRef = doc(db, "friendRequests", requestId);
+    const requestSnap = await getDoc(requestRef);
+    
+    if (!requestSnap.exists()) {
+      alert("Friend request not found");
+      return;
+    }
+    
+    // 1. Update the request status to "accepted" FIRST
     await updateDoc(requestRef, {
-      status: "accepted",  // This is REQUIRED by your security rules
-      updatedAt: serverTimestamp()  // Optional but good practice
+      status: "accepted",
+      acceptedAt: serverTimestamp()
     });
     
-    // 2. THEN add each other as friends
+    console.log("Request status updated to accepted");
+    
+    // 2. Add to both users' friends arrays
     const userRef = doc(db, "users", auth.currentUser.uid);
     const friendRef = doc(db, "users", friendId);
     
+    // Update current user's friends list
     await updateDoc(userRef, {
       friends: arrayUnion(friendId)
     });
     
+    console.log("Added friend to current user");
+    
+    // Update friend's friends list
     await updateDoc(friendRef, {
       friends: arrayUnion(auth.currentUser.uid)
     });
     
-    // 3. OPTIONAL: Delete the request after accepting
-    // You can either delete it now or keep it as a record
-    // await deleteDoc(requestRef);
+    console.log("Added current user to friend's list");
     
+    // 3. Delete the request after successful acceptance
+    await deleteDoc(requestRef);
+    
+    console.log("Friend request deleted");
+    
+    alert("Friend request accepted! 🎉");
+    
+    // Reload friends list to show new friend
+    loadFriends();
   } catch (e) {
     console.error("Error accepting friend request:", e);
-    alert("Error: " + e.message);
+    alert("Error accepting friend request: " + e.message);
   }
 };
 
+/* DECLINE FRIEND REQUEST */
 window.declineFriendRequest = async (requestId) => {
   try {
     await deleteDoc(doc(db, "friendRequests", requestId));
+    console.log("Friend request declined");
   } catch (e) {
     console.error("Error declining friend request:", e);
+    alert("Error declining request: " + e.message);
   }
 };
 
@@ -1476,7 +2184,9 @@ const sendVoiceBtn = document.getElementById("sendVoiceBtn");
 const voiceRecordingUI = document.getElementById("voiceRecordingUI");
 const recordingTime = document.getElementById("recordingTime");
 
-closeCommentsModal.onclick = () => commentsModal.style.display = "none";
+if (closeCommentsModal) {
+  closeCommentsModal.onclick = () => commentsModal.style.display = "none";
+}
 
 window.toggleCommentsSection = (postId) => {
   const section = document.getElementById(`comments-${postId}`);
@@ -1512,12 +2222,12 @@ function loadCommentsForPost(postId) {
           </div>
           <audio controls class="voice-message-player"><source src="${comment.audio}" type="audio/webm"></audio>
         `;
-      } 
-      else {
+      } else {
         commentDiv.style.cssText = "background: rgba(255,255,255,0.1); padding: 8px; border-radius: 8px; margin-bottom: 8px;";
         commentDiv.innerHTML = `
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-            <div style="font-weight: 600; font-size: 12px;">${comment.user}</div>
+
+<div style="font-weight: 600; font-size: 12px; cursor: pointer; color: #667eea;" onclick="viewPublicProfile('${comment.userId}')">${comment.user}</div>
             ${isOwner ? `<div style="display: flex; gap: 5px;">
               <button onclick="editComment('${postId}', '${commentDoc.id}')" style="padding: 2px 6px; font-size: 11px; background: rgba(102,126,234,0.3); border: none; border-radius: 3px; color: white; cursor: pointer;">✏️</button>
               <button onclick="deleteComment('${postId}', '${commentDoc.id}')" style="padding: 2px 6px; font-size: 11px; background: rgba(255,71,87,0.3); border: none; border-radius: 3px; color: white; cursor: pointer;">🗑️</button>
@@ -1535,24 +2245,30 @@ function loadCommentsForPost(postId) {
   });
 }
 
+/* ADD COMMENT TO POST */
 window.addCommentToPost = async (postId) => {
   const input = document.getElementById(`commentInput-${postId}`);
   const text = input.value.trim();
   if (!text) return;
   
-  // When sending a friend request:
-await addDoc(collection(db, "friendRequests"), {
-  from: auth.currentUser.uid,
-  fromEmail: auth.currentUser.email,
-  to: friendId,
-  status: "pending",  // ← ADD THIS FIELD
-  createdAt: serverTimestamp()
-});
-  
-  input.value = "";
-  loadCommentsForPost(postId);
+  try {
+    await addDoc(collection(db, "posts", postId, "comments"), {
+      text: text,
+      user: auth.currentUser.email.split("@")[0],
+      userId: auth.currentUser.uid,
+      createdAt: serverTimestamp(),
+      isVoice: false
+    });
+    
+    input.value = "";
+    loadCommentsForPost(postId);
+  } catch (e) {
+    console.error("Error adding comment:", e);
+    alert("Error posting comment: " + e.message);
+  }
 };
 
+/* VOICE COMMENTS */
 let currentVoiceCommentPostId = null;
 let currentVoiceCommentRecorder = null;
 let currentVoiceCommentChunks = [];
@@ -1589,7 +2305,9 @@ window.recordVoiceComment = async (postId) => {
 
 window.stopVoiceComment = (postId) => {
   clearInterval(window[`stopVoiceComment_${postId}_interval`]);
-  currentVoiceCommentRecorder.stop();
+  if (currentVoiceCommentRecorder && currentVoiceCommentRecorder.state !== "inactive") {
+    currentVoiceCommentRecorder.stop();
+  }
 };
 
 window.sendVoiceComment = (postId) => {
@@ -1601,135 +2319,320 @@ window.sendVoiceComment = (postId) => {
   reader.onload = async (event) => {
     const audioBase64 = event.target.result;
     
-    await addDoc(collection(db, "posts", postId, "comments"), {
-      audio: audioBase64,
-      isVoice: true,
-      user: auth.currentUser.email.split("@")[0],
-      userId: auth.currentUser.uid,
-      createdAt: serverTimestamp()
-    });
-    
-    document.getElementById(`voiceCommentUI-${postId}`).style.display = "none";
-    currentVoiceCommentChunks = [];
-    loadCommentsForPost(postId);
+    try {
+      await addDoc(collection(db, "posts", postId, "comments"), {
+        audio: audioBase64,
+        isVoice: true,
+        user: auth.currentUser.email.split("@")[0],
+        userId: auth.currentUser.uid,
+        createdAt: serverTimestamp()
+      });
+      
+      document.getElementById(`voiceCommentUI-${postId}`).style.display = "none";
+      currentVoiceCommentChunks = [];
+      loadCommentsForPost(postId);
+    } catch (e) {
+      console.error("Error sending voice comment:", e);
+      alert("Error sending voice comment: " + e.message);
+    }
   };
   
   reader.readAsDataURL(audioBlob);
 };
 
-// Story Implementation
-// --- 1. STORY LOGIC ---
-const storiesList = document.getElementById("storiesList");
-const addStoryBtn = document.getElementById("addStoryBtn");
+/* STORIES */
+document.addEventListener("DOMContentLoaded", () => {
 
-addStoryBtn.onclick = async () => {
-  const imgUrl = prompt("Enter Image URL for your story:");
-  if (!imgUrl) return;
+  const addStoryBtn = document.getElementById("addStoryBtn");
+  const storyModal = document.getElementById("storyModal");
+  const storyImageUrl = document.getElementById("storyImageUrl");
+  const storyPreview = document.getElementById("storyPreview");
+  const storyPreviewText = document.getElementById("storyPreviewText");
+  const storyPostBtn = document.getElementById("storyPostBtn");
+  const closeStoryModal = document.getElementById("closeStoryModal");
 
-  await addDoc(collection(db, "stories"), {
-    userId: auth.currentUser.uid,
-    user: auth.currentUser.email.split("@")[0],
-    image: imgUrl,
-    createdAt: serverTimestamp(),
-    expiresAt: Date.now() + (24 * 60 * 60 * 1000),
-    likes: [] // <--- ADD THIS LINE
-  });
+  if (addStoryBtn && storyModal && storyImageUrl && storyPreview && storyPreviewText) {
+    addStoryBtn.onclick = () => {
+      storyModal.style.display = "flex";
+      storyImageUrl.value = "";
+      storyPreview.style.display = "none";
+      storyPreviewText.style.display = "block";
+    };
+  }
+
+  if (storyImageUrl && storyPreview && storyPreviewText) {
+    storyImageUrl.addEventListener("input", () => {
+      const url = storyImageUrl.value.trim();
+      if (url) {
+        storyPreview.src = url;
+        storyPreview.style.display = "block";
+        storyPreviewText.style.display = "none";
+      } else {
+        storyPreview.style.display = "none";
+        storyPreviewText.style.display = "block";
+      }
+    });
+  }
+
+  if (storyPostBtn && storyModal && storyImageUrl) {
+    storyPostBtn.onclick = async () => {
+  const user = auth.currentUser;
+  if (!user || !storyImageUrl.value) return;
+
+  try {
+    // 1. Get your PFP from your user profile first
+    const userDoc = await getDoc(doc(db, "users", user.uid));
+    const userData = userDoc.data();
+    
+    // We use the 'pfp' field we just updated above
+    const myCurrentPfp = userData && userData.pfp ? userData.pfp : "";
+
+    // 2. Add the story with BOTH the story image and the PFP
+    await addDoc(collection(db, "stories"), {
+      userId: user.uid,
+      user: user.email,
+      profilePic: myCurrentPfp,  // <--- The circle uses this
+      image: storyImageUrl.value, // <--- The story viewer uses this
+      createdAt: Date.now(),
+      expiresAt: Date.now() + 24 * 60 * 60 * 1000,
+      likes: []
+    });
+
+    storyModal.style.display = "none";
+    storyImageUrl.value = "";
+  } catch (e) {
+    console.error("Error posting story:", e);
+  }
 };
+  }
+
+  if (closeStoryModal && storyModal) {
+    closeStoryModal.onclick = () => {
+      storyModal.style.display = "none";
+    };
+  }
+
+});
+
+
+
+
 
 const storyViewer = document.getElementById("storyViewer");
 const storyProgress = document.getElementById("storyProgress");
 let storyTimer;
 
 function loadStories() {
-  const q = query(collection(db, "stories"), orderBy("createdAt", "desc"));
+  const q = query(collection(db, "stories"), orderBy("createdAt", "asc"));
+
   onSnapshot(q, (snap) => {
+    if (!storiesList) return;
+
     storiesList.innerHTML = "";
     const now = Date.now();
-    
-    snap.forEach((doc) => {
-      const s = doc.data();
-      if (s.expiresAt > now) {
-        const storyCircle = document.createElement("div");
-        storyCircle.style.cssText = "display: flex; flex-direction: column; align-items: center; gap: 5px; flex-shrink: 0;";
-        storyCircle.innerHTML = `
-          <div class="story-circle-inner" style="width: 65px; height: 65px; border-radius: 50%; border: 3px solid #667eea; padding: 2px; cursor: pointer;">
-            <img src="${s.image}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
-          </div>
-          <span style="font-size: 11px; opacity: 0.8;">${s.user}</span>
-        `;
-        
-        // CLICK TO OPEN VIEWER
-        storyCircle.onclick = () => openStoryViewer(s, doc.id);
-        storiesList.appendChild(storyCircle);
+    const storiesByUser = {};
+
+    snap.forEach((docSnap) => {
+      const story = docSnap.data();
+      if (story.expiresAt <= now) return;
+
+      if (!storiesByUser[story.userId]) {
+        storiesByUser[story.userId] = [];
       }
+
+      storiesByUser[story.userId].push({
+        id: docSnap.id,
+        ...story
+      });
     });
+    allUsersStoryBundles = Object.values(storiesByUser);
+
+    // 🔥 ONE CIRCLE PER USER
+    // 🔥 ONE CIRCLE PER USER (Updated for PFP)
+Object.values(storiesByUser).forEach((userStories) => {
+  const firstStory = userStories[0];
+
+  const storyCircle = document.createElement("div");
+  storyCircle.className = "story-circle";
+
+ // 🔥 Replace the innerHTML part in loadStories
+storyCircle.innerHTML = `
+  <div class="story-circle-inner">
+    <img src="${firstStory.profilePic || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" 
+         onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
+  </div>
+  <span>${firstStory.user.split('@')[0]}</span>
+`;
+
+  storyCircle.onclick = () => openStoryTimeline(userStories);
+  storiesList.appendChild(storyCircle);
+});
   });
 }
+function openStoryTimeline(stories) {
+  currentStories = stories;
+  currentStoryIndex = 0;
+  showStory();
+}
 
-function openStoryViewer(storyData, storyId) {
+
+
+
+function showStory() {
+  if (!storyViewer || currentStoryIndex >= currentStories.length) {
+    closeStoryViewer();
+    return;
+  }
+
+  const story = currentStories[currentStoryIndex];
   storyViewer.style.display = "flex";
-  document.getElementById("storyViewImg").src = storyData.image;
-  document.getElementById("storyViewUser").innerText = storyData.user;
-  document.getElementById("storyViewAvatar").src = storyData.image;
 
-  // Real-time Like Listener
-  const storyRef = doc(db, "stories", storyId);
-  const unsubscribeLikes = onSnapshot(storyRef, (docSnap) => {
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      const likes = data.likes || [];
-      document.getElementById("storyLikeCount").innerText = likes.length;
-      
-      // Change heart color if you already liked it
-      const hasLiked = likes.includes(auth.currentUser.uid);
-      document.getElementById("likeStoryBtn").style.background = hasLiked ? "white" : "rgba(255,255,255,0.1)";
-      document.getElementById("likeStoryBtn").style.color = hasLiked ? "red" : "white";
-    }
-  });
+  // 1. 🔥 MAIN MEDIA (The actual story content)
+  // Inside your showStory() function:
+const mediaBox = document.getElementById("storyViewMedia");
+mediaBox.innerHTML = `
+  <img src="${story.image}" alt="story">
+`;
 
-  // Like Button Click
-  document.getElementById("likeStoryBtn").onclick = async () => {
-    const btn = document.getElementById("likeStoryBtn");
-    btn.style.transform = "scale(1.3)"; // Pop animation
-    setTimeout(() => btn.style.transform = "scale(1)", 200);
-
-    await updateDoc(storyRef, {
-      likes: arrayUnion(auth.currentUser.uid)
-    });
-
-    // Optional: Send notification to owner
-    if (storyData.userId !== auth.currentUser.uid) {
-      await addDoc(collection(db, "notifications"), {
-        to: storyData.userId,
-        from: auth.currentUser.email.split("@")[0],
-        type: "story_like",
-        timestamp: serverTimestamp()
-      });
-    }
+  // 2. 🔥 TOP AVATAR (The small circle in the corner)
+  // We use a default avatar link if profilePic is missing to prevent broken images
+  const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+  const avatarImg = document.getElementById("storyViewAvatar");
+  
+  avatarImg.src = story.profilePic || defaultAvatar;
+  
+  // Extra safety: if the image fails to load, swap it with the default
+  avatarImg.onerror = function() {
+    this.src = defaultAvatar;
   };
 
-  // Progress Bar Logic (same as before)
-  let progress = 0;
-  clearInterval(storyTimer);
-  storyTimer = setInterval(() => {
-    progress += 1; 
-    storyProgress.style.width = progress + "%";
-    if (progress >= 100) {
-      unsubscribeLikes(); // Stop listening when closed
+  document.getElementById("storyViewUser").innerText = story.user.split('@')[0];
+
+  const storyRef = doc(db, "stories", story.id);
+
+  // 🔁 CLEAN OLD LISTENER
+  if (unsubscribeLikes) unsubscribeLikes();
+
+  // ❤️ LIVE LIKE COUNT
+  unsubscribeLikes = onSnapshot(storyRef, (snap) => {
+    if (!snap.exists()) return;
+
+    const likes = snap.data().likes || [];
+    const likeBtn = document.getElementById("likeStoryBtn");
+
+    document.getElementById("storyLikeCount").innerText = likes.length;
+
+    const isLiked = likes.includes(auth.currentUser.uid);
+    likeBtn.style.background = isLiked ? "white" : "rgba(255,255,255,0.1)";
+    likeBtn.style.color = isLiked ? "red" : "white";
+  });
+
+  // ❤️ LIKE / UNLIKE Logic
+  document.getElementById("likeStoryBtn").onclick = async () => {
+    const uid = auth.currentUser.uid;
+    try {
+      const snap = await getDoc(storyRef);
+      if (!snap.exists()) return;
+      const likes = snap.data().likes || [];
+
+      if (likes.includes(uid)) {
+        await updateDoc(storyRef, { likes: arrayRemove(uid) });
+      } else {
+        await updateDoc(storyRef, { likes: arrayUnion(uid) });
+        if (story.userId !== uid) {
+          await addDoc(collection(db, "notifications"), {
+            to: story.userId,
+            from: auth.currentUser.email.split("@")[0],
+            type: "story_like",
+            timestamp: serverTimestamp()
+          });
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+  // Function for the right arrow (Next)
+window.nextStory = () => {
+  // 1. Is there another photo for THIS user?
+  if (currentStoryIndex < currentStories.length - 1) {
+    currentStoryIndex++;
+    showStory();
+  } 
+  else {
+    // 2. No more photos for this user. Is there a NEXT user?
+    // Find where we are in the big list of users
+    const currentUserIndex = allUsersStoryBundles.findIndex(bundle => bundle[0].userId === currentStories[0].userId);
+    
+    if (currentUserIndex !== -1 && currentUserIndex < allUsersStoryBundles.length - 1) {
+      // Jump to the first story of the NEXT user
+      openStoryTimeline(allUsersStoryBundles[currentUserIndex + 1]);
+    } else {
+      // 3. Truly the end of everyone's stories
       closeStoryViewer();
     }
-  }, 50); // Adjusted for a 5-second story
+  }
+};
+
+// Function for the left arrow (Back)
+window.prevStory = () => {
+  // 1. Is there a previous photo for THIS user?
+  if (currentStoryIndex > 0) {
+    currentStoryIndex--;
+    showStory();
+  } 
+  else {
+    // 2. No more photos back here. Is there a PREVIOUS user?
+    const currentUserIndex = allUsersStoryBundles.findIndex(bundle => bundle[0].userId === currentStories[0].userId);
+    
+    if (currentUserIndex > 0) {
+      // Jump to the PREVIOUS user
+      const prevUserStories = allUsersStoryBundles[currentUserIndex - 1];
+      
+      // IMPORTANT: Set the index to the LAST photo of that user
+      currentStories = prevUserStories;
+      currentStoryIndex = prevUserStories.length - 1; 
+      
+      showStory();
+    } else {
+      // 3. Already at the very first photo of the very first user
+      console.log("No more stories to go back to!");
+    }
+  }
+};
+
+  // ⏱ PROGRESS BAR
+  clearInterval(storyTimer);
+  let progress = 0;
+  storyProgress.style.width = "0%";
+
+  storyTimer = setInterval(() => {
+    progress += 1;
+    storyProgress.style.width = progress + "%";
+
+    if (progress >= 100) {
+  clearInterval(storyTimer);
+  window.nextStory(); // This ensures the timer also knows how to jump to the next user!
 }
+  }, 50);
+}
+
 
 function closeStoryViewer() {
-  storyViewer.style.display = "none";
+  if (storyViewer) storyViewer.style.display = "none";
   clearInterval(storyTimer);
+  if (unsubscribeLikes) unsubscribeLikes();
 }
 
-document.getElementById("closeStory").onclick = closeStoryViewer;
-// --- 2. GROUP CHAT LOGIC ---
+
+const closeStoryBtn = document.getElementById("closeStory");
+if (closeStoryBtn) {
+  closeStoryBtn.onclick = closeStoryViewer;
+}
+
+/* GROUP CHAT */
 function loadGroups() {
-  const groupsListContainer = document.getElementById("groupsList"); // Ensure this ID exists in your sidebar
+  const groupsListContainer = document.getElementById("groupsList");
   if (!groupsListContainer) return;
 
   const q = query(collection(db, "groups"), where("members", "array-contains", auth.currentUser.uid));
@@ -1738,7 +2641,7 @@ function loadGroups() {
     snap.forEach((docSnap) => {
       const g = docSnap.data();
       const div = document.createElement("div");
-      div.className = "friend-item"; // Use your existing friend-item style
+      div.className = "friend-item";
       div.innerHTML = `<span>👥 ${g.name}</span>`;
       div.onclick = () => openGroupChat(docSnap.id, g.name);
       groupsListContainer.appendChild(div);
@@ -1747,16 +2650,14 @@ function loadGroups() {
 }
 
 window.openGroupChat = (groupId, groupName) => {
-  currentChatFriend = null; // Disable private chat mode
-  currentGroupId = groupId; // Enable group chat mode
+  currentChatFriend = null;
+  currentGroupId = groupId;
   
-  // Switch UI to messaging tab
   document.getElementById("messagesBtn").click(); 
   document.getElementById("noChatMessage").style.display = "none";
   document.getElementById("chatContainer").style.display = "flex";
   document.getElementById("chatHeader").innerText = `Group: ${groupName}`;
   
-  // Listen for Group Messages
   const q = query(collection(db, "groups", groupId, "messages"), orderBy("createdAt", "asc"));
   onSnapshot(q, (snap) => {
     const chatMessages = document.getElementById("chatMessages");
@@ -1775,6 +2676,107 @@ window.openGroupChat = (groupId, groupName) => {
     chatMessages.scrollTop = chatMessages.scrollHeight;
   });
 };
+document.addEventListener("DOMContentLoaded", () => {
+  const openPostModal = document.getElementById("openPostModal");
+  const closePostModal = document.getElementById("closePostModal");
+  const postModal = document.getElementById("postModal");
+
+  openPostModal.onclick = () => {
+    postModal.style.display = "flex";
+  };
+
+  closePostModal.onclick = () => {
+    postModal.style.display = "none";
+  };
+});
+// Function to view another user's profile
+
+
+window.viewPublicProfile = async (uid) => {
+  const publicProfileModal = document.getElementById("publicProfileModal");
+  const bioEl = document.getElementById("publicProfileBio");
+  const emailEl = document.getElementById("publicProfileEmail");
+  const picEl = document.getElementById("publicProfilePic");
+  const postsContainer = document.getElementById("publicProfilePosts");
+
+  publicProfileModal.style.display = "flex";
+  postsContainer.innerHTML = `
+    <div style="display:flex; justify-content:center; padding:20px;">
+      <div class="spinner"></div>
+    </div>
+  `;
+
+  // 1️⃣ USER INFO
+  const userDoc = await getDoc(doc(db, "users", uid));
+  if (userDoc.exists()) {
+    const data = userDoc.data();
+    emailEl.innerText = data.email || "Unknown User";
+    bioEl.innerText = data.bio || "No bio yet";
+
+    if (data.profilePic) {
+      picEl.textContent = "";
+      picEl.style.backgroundImage = `url(${data.profilePic})`;
+      picEl.style.backgroundSize = "cover";
+      picEl.style.backgroundPosition = "center";
+    } else {
+      picEl.textContent = "👤";
+      picEl.style.backgroundImage = "none";
+    }
+  }
+
+  // 2️⃣ REAL-TIME POSTS
+  const q = query(
+    collection(db, "posts"),
+    where("userId", "==", uid),
+    orderBy("createdAt", "desc")
+  );
+
+  onSnapshot(q, (snapshot) => {
+  postsContainer.innerHTML = "";
+  postsContainer.className = "public-posts-grid";
+
+  if (snapshot.empty) {
+    postsContainer.innerHTML =
+      "<p style='grid-column:1/-1; text-align:center; opacity:0.6;'>No posts yet</p>";
+    return;
+  }
+
+  snapshot.forEach((docSnap) => {
+    const post = docSnap.data();
+    const imageUrl = post.image; // ✅ CORRECT FIELD
+
+    const div = document.createElement("div");
+    div.className = "profile-post";
+
+    div.innerHTML = `
+      <div class="profile-post-text">
+        ${post.text || "Tap to view image"}
+      </div>
+
+      <div class="profile-post-img">
+        <img src="${imageUrl}" loading="lazy">
+      </div>
+    `;
+
+    div.addEventListener("click", () => {
+      div.classList.toggle("show-image");
+    });
+
+    postsContainer.appendChild(div);
+  });
+});
+document.addEventListener("click", (e) => {
+  if (e.target.id === "closePublicProfile") {
+    document.getElementById("publicProfileModal").style.display = "none";
+  }
+});
+
+
+
+
+};
+
+
 
 
 </script>
