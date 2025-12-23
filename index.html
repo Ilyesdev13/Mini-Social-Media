@@ -2423,6 +2423,73 @@ const storyProgress = document.getElementById("storyProgress");
 let storyTimer;
 
 function loadStories() {
+  // Unsubscribe from old listener if it exists
+  if (unsubscribeStories) {
+    unsubscribeStories();
+  }
+
+  // Listen to user's friends list in real-time
+  const userRef = doc(db, "users", auth.currentUser.uid);
+  
+  unsubscribeStories = onSnapshot(userRef, (userSnap) => {
+    const myFriends = userSnap.exists() ? (userSnap.data().friends || []) : [];
+    
+    // Include own stories as well
+    const allowedUsers = [...myFriends, auth.currentUser.uid];
+
+    const q = query(collection(db, "stories"), orderBy("createdAt", "asc"));
+
+    onSnapshot(q, async (snap) => {
+      if (!storiesList) return;
+
+      storiesList.innerHTML = "";
+      const now = Date.now();
+      const storiesByUser = {};
+
+      snap.forEach((docSnap) => {
+        const story = docSnap.data();
+        
+        // Only show stories from friends or yourself
+        if (!allowedUsers.includes(story.userId)) return;
+        if (story.expiresAt <= now) return;
+
+        if (!storiesByUser[story.userId]) {
+          storiesByUser[story.userId] = [];
+        }
+
+        storiesByUser[story.userId].push({
+          id: docSnap.id,
+          ...story
+        });
+      });
+      allUsersStoryBundles = Object.values(storiesByUser);
+
+      // ðŸ"¥ ONE CIRCLE PER USER (Fetch current PFP dynamically)
+      for (const userStories of Object.values(storiesByUser)) {
+        const firstStory = userStories[0];
+
+        // Fetch the current profile picture from the user's document
+        const storyUserRef = doc(db, "users", firstStory.userId);
+        const storyUserSnap = await getDoc(storyUserRef);
+        const currentPfp = storyUserSnap.exists() ? (storyUserSnap.data().pfp || storyUserSnap.data().profilePic) : null;
+
+        const storyCircle = document.createElement("div");
+        storyCircle.className = "story-circle";
+
+        storyCircle.innerHTML = `
+          <div class="story-circle-inner">
+            <img src="${currentPfp || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" 
+                 onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
+          </div>
+          <span>${firstStory.user.split('@')[0]}</span>
+        `;
+
+        storyCircle.onclick = () => openStoryTimeline(userStories);
+        storiesList.appendChild(storyCircle);
+      }
+    });
+  });
+}function loadStories() {
   // Listen to user's friends list in real-time
   const userRef = doc(db, "users", auth.currentUser.uid);
   
@@ -2458,6 +2525,7 @@ function loadStories() {
         });
       });
       allUsersStoryBundles = Object.values(storiesByUser);
+    
 
 
 Object.values(storiesByUser).forEach((userStories) => {
@@ -2794,6 +2862,7 @@ document.addEventListener("click", (e) => {
 
 </body>
 </html>
+
 
 
 
