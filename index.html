@@ -2489,7 +2489,7 @@ function openStoryTimeline(stories) {
 
 
 
-function showStory() {
+async function showStory() { // 🔥 Added 'async' here
   if (!storyViewer || currentStoryIndex >= currentStories.length) {
     closeStoryViewer();
     return;
@@ -2498,21 +2498,35 @@ function showStory() {
   const story = currentStories[currentStoryIndex];
   storyViewer.style.display = "flex";
 
-  // 1. 🔥 MAIN MEDIA (The actual story content)
-  // Inside your showStory() function:
-const mediaBox = document.getElementById("storyViewMedia");
-mediaBox.innerHTML = `
-  <img src="${story.image}" alt="story">
-`;
+  // 1. 🔥 MAIN MEDIA (The actual story image)
+  const mediaBox = document.getElementById("storyViewMedia");
+  mediaBox.innerHTML = `
+    <img src="${story.image}" alt="story">
+  `;
 
-  // 2. 🔥 TOP AVATAR (The small circle in the corner)
-  // We use a default avatar link if profilePic is missing to prevent broken images
+  // 2. 🔥 TOP AVATAR (LIVE UPDATE FIX)
   const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
   const avatarImg = document.getElementById("storyViewAvatar");
-  
-  avatarImg.src = story.profilePic || defaultAvatar;
-  
-  // Extra safety: if the image fails to load, swap it with the default
+
+  try {
+    // We go to the 'users' collection to get the LIVE profile picture
+    const userDocRef = doc(db, "users", story.userId);
+    const userDocSnap = await getDoc(userDocRef);
+
+    if (userDocSnap.exists()) {
+      const userData = userDocSnap.data();
+      // Use the live picture from their profile, NOT the old one from the story
+      avatarImg.src = userData.profilePic || userData.pfp || defaultAvatar;
+    } else {
+      // Fallback if user profile isn't found
+      avatarImg.src = story.profilePic || defaultAvatar;
+    }
+  } catch (error) {
+    console.error("Error loading live PFP:", error);
+    avatarImg.src = story.profilePic || defaultAvatar;
+  }
+
+  // Safety: if image fails to load, use default
   avatarImg.onerror = function() {
     this.src = defaultAvatar;
   };
@@ -2563,58 +2577,11 @@ mediaBox.innerHTML = `
       console.error(e);
     }
   };
-  // Function for the right arrow (Next)
-window.nextStory = () => {
-  // 1. Is there another photo for THIS user?
-  if (currentStoryIndex < currentStories.length - 1) {
-    currentStoryIndex++;
-    showStory();
-  } 
-  else {
-    // 2. No more photos for this user. Is there a NEXT user?
-    // Find where we are in the big list of users
-    const currentUserIndex = allUsersStoryBundles.findIndex(bundle => bundle[0].userId === currentStories[0].userId);
-    
-    if (currentUserIndex !== -1 && currentUserIndex < allUsersStoryBundles.length - 1) {
-      // Jump to the first story of the NEXT user
-      openStoryTimeline(allUsersStoryBundles[currentUserIndex + 1]);
-    } else {
-      // 3. Truly the end of everyone's stories
-      closeStoryViewer();
-    }
-  }
-};
 
-// Function for the left arrow (Back)
-window.prevStory = () => {
-  // 1. Is there a previous photo for THIS user?
-  if (currentStoryIndex > 0) {
-    currentStoryIndex--;
-    showStory();
-  } 
-  else {
-    // 2. No more photos back here. Is there a PREVIOUS user?
-    const currentUserIndex = allUsersStoryBundles.findIndex(bundle => bundle[0].userId === currentStories[0].userId);
-    
-    if (currentUserIndex > 0) {
-      // Jump to the PREVIOUS user
-      const prevUserStories = allUsersStoryBundles[currentUserIndex - 1];
-      
-      // IMPORTANT: Set the index to the LAST photo of that user
-      currentStories = prevUserStories;
-      currentStoryIndex = prevUserStories.length - 1; 
-      
-      showStory();
-    } else {
-      // 3. Already at the very first photo of the very first user
-      console.log("No more stories to go back to!");
-    }
-  }
-};
-
-  // ⏱ PROGRESS BAR
+  // ⏱️ PROGRESS BAR & TIMER
   clearInterval(storyTimer);
   let progress = 0;
+  const storyProgress = document.getElementById("storyProgress");
   storyProgress.style.width = "0%";
 
   storyTimer = setInterval(() => {
@@ -2622,11 +2589,44 @@ window.prevStory = () => {
     storyProgress.style.width = progress + "%";
 
     if (progress >= 100) {
-  clearInterval(storyTimer);
-  window.nextStory(); // This ensures the timer also knows how to jump to the next user!
-}
+      clearInterval(storyTimer);
+      window.nextStory(); 
+    }
   }, 50);
 }
+
+// Function for the right arrow (Next)
+window.nextStory = () => {
+  if (currentStoryIndex < currentStories.length - 1) {
+    currentStoryIndex++;
+    showStory();
+  } else {
+    const currentUserIndex = allUsersStoryBundles.findIndex(bundle => bundle[0].userId === currentStories[0].userId);
+    if (currentUserIndex !== -1 && currentUserIndex < allUsersStoryBundles.length - 1) {
+      openStoryTimeline(allUsersStoryBundles[currentUserIndex + 1]);
+    } else {
+      closeStoryViewer();
+    }
+  }
+};
+
+// Function for the left arrow (Back)
+window.prevStory = () => {
+  if (currentStoryIndex > 0) {
+    currentStoryIndex--;
+    showStory();
+  } else {
+    const currentUserIndex = allUsersStoryBundles.findIndex(bundle => bundle[0].userId === currentStories[0].userId);
+    if (currentUserIndex > 0) {
+      const prevUserStories = allUsersStoryBundles[currentUserIndex - 1];
+      currentStories = prevUserStories;
+      currentStoryIndex = prevUserStories.length - 1; 
+      showStory();
+    } else {
+      console.log("No more stories to go back to!");
+    }
+  }
+};
 
 
 function closeStoryViewer() {
@@ -2794,5 +2794,6 @@ document.addEventListener("click", (e) => {
 
 </body>
 </html>
+
 
 
