@@ -2423,16 +2423,17 @@ const storyViewer = document.getElementById("storyViewer");
 const storyProgress = document.getElementById("storyProgress");
 let storyTimer;
 
-function loadStories() {
+async function loadStories() {
   const q = query(collection(db, "stories"), orderBy("createdAt", "asc"));
 
-  onSnapshot(q, (snap) => {
+  onSnapshot(q, async (snap) => {
     if (!storiesList) return;
 
     storiesList.innerHTML = "";
     const now = Date.now();
     const storiesByUser = {};
 
+    // 1. Group stories by user
     snap.forEach((docSnap) => {
       const story = docSnap.data();
       if (story.expiresAt <= now) return;
@@ -2440,34 +2441,46 @@ function loadStories() {
       if (!storiesByUser[story.userId]) {
         storiesByUser[story.userId] = [];
       }
-
       storiesByUser[story.userId].push({
         id: docSnap.id,
         ...story
       });
     });
+
     allUsersStoryBundles = Object.values(storiesByUser);
 
-    // 🔥 ONE CIRCLE PER USER
-    // 🔥 ONE CIRCLE PER USER (Updated for PFP)
-Object.values(storiesByUser).forEach((userStories) => {
-  const firstStory = userStories[0];
+    // 2. Create circles using LIVE user data
+    for (const userId in storiesByUser) {
+      const userStories = storiesByUser[userId];
+      
+      // Get the latest data for this specific user
+      const userDocRef = doc(db, "users", userId);
+      const userDocSnap = await getDoc(userDocRef);
+      
+      let livePfp = 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
+      let displayName = userStories[0].user.split('@')[0];
 
-  const storyCircle = document.createElement("div");
-  storyCircle.className = "story-circle";
+      if (userDocSnap.exists()) {
+        const userData = userDocSnap.data();
+        // Use the profilePic from the USER document, not the story document
+        livePfp = userData.profilePic || livePfp;
+        if(userData.username) displayName = userData.username;
+      }
 
- // 🔥 Replace the innerHTML part in loadStories
-storyCircle.innerHTML = `
-  <div class="story-circle-inner">
-    <img src="${firstStory.profilePic || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" 
-         onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
-  </div>
-  <span>${firstStory.user.split('@')[0]}</span>
-`;
+      const storyCircle = document.createElement("div");
+      storyCircle.className = "story-circle";
 
-  storyCircle.onclick = () => openStoryTimeline(userStories);
-  storiesList.appendChild(storyCircle);
-});
+      storyCircle.innerHTML = `
+        <div class="story-circle-inner">
+          <img src="${livePfp}" 
+               onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
+        </div>
+        <span>${displayName}</span>
+      `;
+
+      storyCircle.onclick = () => openStoryTimeline(userStories);
+      storiesList.appendChild(storyCircle);
+    }
   });
 }
 function openStoryTimeline(stories) {
@@ -2784,3 +2797,4 @@ document.addEventListener("click", (e) => {
 
 </body>
 </html>
+
