@@ -2421,8 +2421,7 @@ document.addEventListener("DOMContentLoaded", () => {
 const storyViewer = document.getElementById("storyViewer");
 const storyProgress = document.getElementById("storyProgress");
 let storyTimer;
-
-function loadStories() {
+     function loadStories() {
   // Unsubscribe from old listener if it exists
   if (unsubscribeStories) {
     unsubscribeStories();
@@ -2489,42 +2488,6 @@ function loadStories() {
       }
     });
   });
-}function loadStories() {
-  // Listen to user's friends list in real-time
-  const userRef = doc(db, "users", auth.currentUser.uid);
-  
-  onSnapshot(userRef, (userSnap) => {
-    const myFriends = userSnap.exists() ? (userSnap.data().friends || []) : [];
-    
-    // Include own stories as well
-    const allowedUsers = [...myFriends, auth.currentUser.uid];
-
-    const q = query(collection(db, "stories"), orderBy("createdAt", "asc"));
-
-    onSnapshot(q, (snap) => {
-      if (!storiesList) return;
-
-      storiesList.innerHTML = "";
-      const now = Date.now();
-      const storiesByUser = {};
-
-      snap.forEach((docSnap) => {
-        const story = docSnap.data();
-        
-        // Only show stories from friends or yourself
-        if (!allowedUsers.includes(story.userId)) return;
-        if (story.expiresAt <= now) return;
-
-        if (!storiesByUser[story.userId]) {
-          storiesByUser[story.userId] = [];
-        }
-
-        storiesByUser[story.userId].push({
-          id: docSnap.id,
-          ...story
-        });
-      });
-      allUsersStoryBundles = Object.values(storiesByUser);
       });
     
 
@@ -2863,6 +2826,7 @@ document.addEventListener("click", (e) => {
 
 </body>
 </html>
+
 
 
 
