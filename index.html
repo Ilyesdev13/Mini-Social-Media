@@ -1946,7 +1946,7 @@ window.openChat = function(friendId, friendEmail) {
   noChatMessage.style.display = "none";
   chatContainer.style.display = "flex";
 
-  // 1️⃣ HEADER NAME: Remains clickable
+  // 1️⃣ UPDATE HEADER: Make the name clickable to open profile
   const displayName = friendEmail.split("@")[0];
   chatHeader.innerHTML = `
     💬 <span style="cursor: pointer; text-decoration: underline; color: #ffb400;" 
@@ -1972,10 +1972,11 @@ window.openChat = function(friendId, friendEmail) {
       const msgEl = document.createElement("div");
       msgEl.className = `message ${isOwn ? "own" : "other"}`;
       
-      // 2️⃣ MESSAGE NAME: Now UNCLICKABLE plain text
+      // 2️⃣ UPDATE MESSAGES: Add a clickable name above the text bubble
       const nameInChat = msg.senderEmail ? msg.senderEmail.split('@')[0] : 'User';
       const senderLabel = `
-        <div style="font-size: 10px; opacity: 0.7; margin-bottom: 3px;">
+        <div style="font-size: 10px; opacity: 0.7; margin-bottom: 3px; cursor: pointer; text-decoration: underline;" 
+             onclick="viewPublicProfile('${msg.sender}')">
           ${nameInChat}
         </div>`;
 
@@ -2422,15 +2423,7 @@ const storyViewer = document.getElementById("storyViewer");
 const storyProgress = document.getElementById("storyProgress");
 let storyTimer;
 
-async function loadStories() {
-  // Get current user's friends list
-  const userRef = doc(db, "users", auth.currentUser.uid);
-  const userSnap = await getDoc(userRef);
-  const myFriends = userSnap.exists() ? (userSnap.data().friends || []) : [];
-  
-  // Include own stories as well
-  const allowedUsers = [...myFriends, auth.currentUser.uid];
-
+function loadStories() {
   const q = query(collection(db, "stories"), orderBy("createdAt", "asc"));
 
   onSnapshot(q, (snap) => {
@@ -2442,9 +2435,6 @@ async function loadStories() {
 
     snap.forEach((docSnap) => {
       const story = docSnap.data();
-      
-      // Only show stories from friends or yourself
-      if (!allowedUsers.includes(story.userId)) return;
       if (story.expiresAt <= now) return;
 
       if (!storiesByUser[story.userId]) {
