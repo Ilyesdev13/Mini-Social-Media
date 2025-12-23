@@ -2489,7 +2489,11 @@ function openStoryTimeline(stories) {
 
 
 
-async function showStory() { // 🔥 Added 'async' here
+// 1. Create a variable at the top of your script (outside any function) 
+// to hold the listener so we can stop it later.
+let userListener = null;
+
+async function showStory() {
   if (!storyViewer || currentStoryIndex >= currentStories.length) {
     closeStoryViewer();
     return;
@@ -2498,87 +2502,71 @@ async function showStory() { // 🔥 Added 'async' here
   const story = currentStories[currentStoryIndex];
   storyViewer.style.display = "flex";
 
-  // 1. 🔥 MAIN MEDIA (The actual story image)
+  // --- 1. MAIN MEDIA ---
   const mediaBox = document.getElementById("storyViewMedia");
-  mediaBox.innerHTML = `
-    <img src="${story.image}" alt="story">
-  `;
+  mediaBox.innerHTML = `<img src="${story.image}" alt="story">`;
 
-  // 2. 🔥 TOP AVATAR (LIVE UPDATE FIX)
-  const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+  // --- 2. LIVE AVATAR FIX (THE TOP CORNER) ---
   const avatarImg = document.getElementById("storyViewAvatar");
+  const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
-  try {
-    // We go to the 'users' collection to get the LIVE profile picture
-    const userDocRef = doc(db, "users", story.userId);
-    const userDocSnap = await getDoc(userDocRef);
+  // Clean up any old listener from the previous story
+  if (userListener) userListener();
 
-    if (userDocSnap.exists()) {
-      const userData = userDocSnap.data();
-      // Use the live picture from their profile, NOT the old one from the story
-      avatarImg.src = userData.profilePic || userData.pfp || defaultAvatar;
-    } else {
-      // Fallback if user profile isn't found
-      avatarImg.src = story.profilePic || defaultAvatar;
-    }
-  } catch (error) {
-    console.error("Error loading live PFP:", error);
+  // 🔥 This is the magic part: it "listens" to the USER profile, not the story post
+  if (story.userId) {
+    userListener = onSnapshot(doc(db, "users", story.userId), (userSnap) => {
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        // Checks both 'profilePic' and 'pfp' fields for compatibility
+        avatarImg.src = userData.profilePic || userData.pfp || defaultAvatar;
+      } else {
+        avatarImg.src = story.profilePic || defaultAvatar;
+      }
+    });
+  } else {
     avatarImg.src = story.profilePic || defaultAvatar;
   }
 
-  // Safety: if image fails to load, use default
-  avatarImg.onerror = function() {
-    this.src = defaultAvatar;
-  };
-
+  avatarImg.onerror = () => { avatarImg.src = defaultAvatar; };
   document.getElementById("storyViewUser").innerText = story.user.split('@')[0];
 
+  // --- 3. LIKE SYSTEM ---
   const storyRef = doc(db, "stories", story.id);
-
-  // 🔁 CLEAN OLD LISTENER
   if (unsubscribeLikes) unsubscribeLikes();
 
-  // ❤️ LIVE LIKE COUNT
   unsubscribeLikes = onSnapshot(storyRef, (snap) => {
     if (!snap.exists()) return;
-
     const likes = snap.data().likes || [];
     const likeBtn = document.getElementById("likeStoryBtn");
-
     document.getElementById("storyLikeCount").innerText = likes.length;
-
     const isLiked = likes.includes(auth.currentUser.uid);
     likeBtn.style.background = isLiked ? "white" : "rgba(255,255,255,0.1)";
     likeBtn.style.color = isLiked ? "red" : "white";
   });
 
-  // ❤️ LIKE / UNLIKE Logic
+  // --- 4. LIKE BUTTON CLICK ---
   document.getElementById("likeStoryBtn").onclick = async () => {
     const uid = auth.currentUser.uid;
-    try {
-      const snap = await getDoc(storyRef);
-      if (!snap.exists()) return;
-      const likes = snap.data().likes || [];
-
-      if (likes.includes(uid)) {
-        await updateDoc(storyRef, { likes: arrayRemove(uid) });
-      } else {
-        await updateDoc(storyRef, { likes: arrayUnion(uid) });
-        if (story.userId !== uid) {
-          await addDoc(collection(db, "notifications"), {
-            to: story.userId,
-            from: auth.currentUser.email.split("@")[0],
-            type: "story_like",
-            timestamp: serverTimestamp()
-          });
-        }
+    const snap = await getDoc(storyRef);
+    if (!snap.exists()) return;
+    const likes = snap.data().likes || [];
+    if (likes.includes(uid)) {
+      await updateDoc(storyRef, { likes: arrayRemove(uid) });
+    } else {
+      await updateDoc(storyRef, { likes: arrayUnion(uid) });
+      if (story.userId !== uid) {
+        await addDoc(collection(db, "notifications"), {
+          to: story.userId,
+          from: auth.currentUser.email.split("@")[0],
+          type: "story_like",
+          timestamp: serverTimestamp()
+        });
       }
-    } catch (e) {
-      console.error(e);
     }
   };
 
-  // ⏱️ PROGRESS BAR & TIMER
+  // --- 5. TIMER & PROGRESS ---
   clearInterval(storyTimer);
   let progress = 0;
   const storyProgress = document.getElementById("storyProgress");
@@ -2587,12 +2575,19 @@ async function showStory() { // 🔥 Added 'async' here
   storyTimer = setInterval(() => {
     progress += 1;
     storyProgress.style.width = progress + "%";
-
     if (progress >= 100) {
       clearInterval(storyTimer);
-      window.nextStory(); 
+      window.nextStory();
     }
   }, 50);
+}
+
+// ⚠️ IMPORTANT: Update your close function to stop the listener
+function closeStoryViewer() {
+  storyViewer.style.display = "none";
+  clearInterval(storyTimer);
+  if (unsubscribeLikes) unsubscribeLikes();
+  if (userListener) userListener(); // 🔥 Stop listening to the PFP when closed
 }
 
 // Function for the right arrow (Next)
@@ -2794,6 +2789,7 @@ document.addEventListener("click", (e) => {
 
 </body>
 </html>
+
 
 
 
