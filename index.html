@@ -1637,17 +1637,14 @@ uploadProfilePicBtn.onclick = () => profilePicInput.click();
 profilePicInput.onchange = async (e) => {
   const file = e.target.files[0];
   if (!file) return;
-  
   const reader = new FileReader();
   reader.onload = async (event) => {
     const base64 = event.target.result;
     const userRef = doc(db, "users", auth.currentUser.uid);
     
-    // 🔥 CHANGE: Use 'pfp' instead of 'profilePic'
-    await updateDoc(userRef, {
-      pfp: base64 
-    });
-    
+    // CHANGE 'pfp' TO 'profilePic' HERE:
+    await updateDoc(userRef, { profilePic: base64 }); 
+
     // Update UI elements
     [profilePicDisplay, navbarProfilePic].forEach(el => {
       el.textContent = "";
@@ -2797,4 +2794,5 @@ document.addEventListener("click", (e) => {
 
 </body>
 </html>
+
 
